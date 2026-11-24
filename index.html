@@ -1933,6 +1933,8 @@ body { background:rgb(242,241,246); overflow:hidden }
   let pendingPaperBreakBlocks=null;
   let paperIndexTouchHandledUntil=0;
   let lastPaperRange=null;
+  let paperComposing=false;
+  let followNewNoteEnd=false;
   const paperBlockSelector='[data-paper-block],p,div';
   const clearPaperFontStyles=element=>{
     if(!element?.style)return;
@@ -1983,6 +1985,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     return lastPaperRange&&paperEditor.contains(lastPaperRange.startContainer)?lastPaperRange:null;
   };
   const normalizePaperBlocks=()=>{
+    if(paperComposing)return getPaperBlocks();
     repairPaperRootText();
     const blocks=getPaperBlocks();
     if(!blocks.length){
@@ -1990,6 +1993,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       titleBlock.dataset.paperBlock='true';
       titleBlock.dataset.paperLevel='title';
       titleBlock.dataset.paperHeading='true';
+      titleBlock.append(document.createElement('br'));
       paperEditor.append(titleBlock);
       return [titleBlock];
     }
@@ -2062,6 +2066,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     headingOptions.forEach(option=>option.setAttribute('aria-checked',String(option.dataset.level===level)));
   };
   const positionPaperIndex=()=>{
+    if(paperComposing)return;
     const canvasRect=paperCanvas.getBoundingClientRect();
     const editorRect=paperEditor.getBoundingClientRect();
     const editorStyle=getComputedStyle(paperEditor);
@@ -2159,6 +2164,17 @@ body { background:rgb(242,241,246); overflow:hidden }
     ensurePaperCaretInsideBlock();
     positionPaperIndex();
   });
+  paperEditor.addEventListener('compositionstart',()=>{paperComposing=true;});
+  paperEditor.addEventListener('compositionend',()=>{
+    paperComposing=false;
+    requestAnimationFrame(()=>{
+      if(app.dataset.handwriteOpen!=='true')return;
+      normalizePaperBlocks();
+      if(followNewNoteEnd)placeCaretAtNoteEnd();
+      positionPaperIndex();
+      keepPaperCaretVisible();
+    });
+  });
   paperEditor.addEventListener('click',positionPaperIndex);
   paperEditor.addEventListener('keyup',positionPaperIndex);
   paperEditor.addEventListener('input',positionPaperIndex);
@@ -2192,7 +2208,8 @@ body { background:rgb(242,241,246); overflow:hidden }
     paperEditor.replaceChildren();
     if(lines.length===1){
       const titleBlock=document.createElement('div');
-      titleBlock.textContent=lines[0]||'';
+      if(lines[0])titleBlock.textContent=lines[0];
+      else titleBlock.append(document.createElement('br'));
       titleBlock.dataset.paperBlock='true';
       titleBlock.dataset.paperLevel='title';
       titleBlock.dataset.paperHeading='true';
@@ -2200,7 +2217,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       paperEditor.removeAttribute('data-heading-level');
       const caret=document.createRange();
       caret.selectNodeContents(titleBlock);
-      caret.collapse(false);
+      caret.collapse(!lines[0]);
       const selection=window.getSelection();
       selection.removeAllRanges();
       selection.addRange(caret);
@@ -2249,10 +2266,13 @@ body { background:rgb(242,241,246); overflow:hidden }
     });
   };
   paperEditor.addEventListener('keydown',event=>{
-    if(event.key==='Enter')capturePaperBreak();
+    if(event.key==='Enter'&&!paperComposing)capturePaperBreak();
+    if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))followNewNoteEnd=false;
   });
   paperEditor.addEventListener('beforeinput',event=>{
-    ensurePaperCaretInsideBlock();
+    if(paperComposing||event.isComposing||event.inputType==='insertCompositionText')return;
+    if(followNewNoteEnd)placeCaretAtNoteEnd();
+    else ensurePaperCaretInsideBlock();
     if(event.inputType==='insertParagraph')capturePaperBreak();
   });
   const draftParts=text=>{
@@ -2727,6 +2747,20 @@ body { background:rgb(242,241,246); overflow:hidden }
     lastPaperRange=range.cloneRange();
     return true;
   };
+  const placeCaretAtNoteEnd=()=>{
+    const block=paperEditor.lastElementChild||paperEditor;
+    const caret=document.createRange();
+    const textNodes=document.createTreeWalker(block,NodeFilter.SHOW_TEXT);
+    let textNode;
+    let lastTextNode=null;
+    while((textNode=textNodes.nextNode())){
+      if(textNode.length)lastTextNode=textNode;
+    }
+    if(lastTextNode)caret.setStart(lastTextNode,lastTextNode.length);
+    else caret.setStart(block,0);
+    caret.collapse(true);
+    placeCaretAtRange(caret);
+  };
   const enterPaperEditMode=event=>{
     if(app.dataset.handwriteOpen!=='true')return;
     const from=paperZoom;
@@ -2754,11 +2788,13 @@ body { background:rgb(242,241,246); overflow:hidden }
     requestAnimationFrame(finish);
   };
   paperEditor.addEventListener('pointerdown',enterPaperEditMode);
+  paperEditor.addEventListener('pointerdown',()=>{followNewNoteEnd=false;});
   paperEditor.addEventListener('focusin',enterPaperEditMode);
-  paperEditor.addEventListener('input',()=>{
+  paperEditor.addEventListener('input',event=>{
     const text=readDraft();
     if(text.trim()){
       updateDraftCard(text);
+      if(followNewNoteEnd&&!paperComposing&&!event.isComposing)placeCaretAtNoteEnd();
       return;
     }
     // Keep an existing card's saved body in sync when the editor is cleared.
@@ -2781,9 +2817,10 @@ body { background:rgb(242,241,246); overflow:hidden }
       setPaperEditorText(noteText);
       currentDraftCard=noteCard||null;
       currentDraftText=noteText;
+      followNewNoteEnd=!noteCard;
       paperEditing=!noteCard;
       if(noteCard)syncHeadingOptions(getPaperCaretLevel());
-      else setHeadingLevel('title',{focus:true});
+      else setHeadingLevel('title',{focus:false});
       setHeadingMenu(false);
       setFilter(false);setSort(false);setOpen(false);
       noteList.scrollTop=0;
@@ -2796,23 +2833,20 @@ body { background:rgb(242,241,246); overflow:hidden }
       paperViewport.scrollTop=0;
       paperCanvas.classList.remove('is-pulled');
       if(!noteCard){
-        const viewportBounds=paperViewport.getBoundingClientRect();
-        const zoomAnchorX=viewportBounds.left+1;
-        const zoomAnchorY=viewportBounds.top+1;
-        const startScrollLeft=paperViewport.scrollLeft;
+        // New notes open directly at the editing scale. Keeping the fit-to-page
+        // zoom animation here made the first caret render in the overview
+        // position until the user tapped the paper.
         const targetScrollLeft=Math.max(0,paperBase.textMargin-paperBase.newNoteCaretOffset);
-        animatePaperZoom(fitZoom,1,360,()=>{
-          // The horizontal pan is animated with the zoom, so the caret does
-          // not jump after the paper reaches its final scale.
-          paperViewport.scrollLeft=targetScrollLeft;
-          paperViewport.scrollTop=0;
-          setPaperPull(0,0);
-          keepPaperCaretVisible();
-        },zoomAnchorX,zoomAnchorY,progress=>{
-          paperViewport.scrollLeft=startScrollLeft+(targetScrollLeft-startScrollLeft)*progress;
-        });
+        setPaperZoom(1);
+        paperViewport.scrollLeft=targetScrollLeft;
+        paperViewport.scrollTop=0;
+        setPaperPull(0,0);
+        paperEditor.focus({preventScroll:true});
+        placeCaretAtNoteEnd();
+        positionPaperIndex();
       }
     } else {
+      followNewNoteEnd=false;
       setHeadingMenu(false);
       cancelPaperZoomAnimation();
       paperEditor.blur();
