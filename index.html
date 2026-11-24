@@ -1942,14 +1942,57 @@ body { background:rgb(242,241,246); overflow:hidden }
     });
   };
   const getPaperBlocks=()=>[...paperEditor.children].filter(node=>node.matches?.(paperBlockSelector));
+  const repairPaperRootText=()=>{
+    const selection=window.getSelection();
+    let restoredCaret=null;
+    [...paperEditor.childNodes].forEach(node=>{
+      if(node.nodeType!==Node.TEXT_NODE||!node.textContent)return;
+      const index=[...paperEditor.childNodes].indexOf(node);
+      if(selection?.isCollapsed){
+        if(selection.anchorNode===node){
+          restoredCaret={node,offset:selection.anchorOffset};
+        }else if(selection.anchorNode===paperEditor&&selection.anchorOffset===index+1){
+          restoredCaret={node,offset:node.length};
+        }
+      }
+      const previous=node.previousElementSibling;
+      const next=node.nextElementSibling;
+      let block=previous?.matches?.(paperBlockSelector)?previous:
+        (next?.matches?.(paperBlockSelector)?next:null);
+      if(!block){
+        block=document.createElement('div');
+        block.dataset.paperBlock='true';
+        block.dataset.paperLevel='title';
+        paperEditor.insertBefore(block,node);
+      }
+      if(block===next)block.prepend(node);
+      else block.append(node);
+    });
+    if(restoredCaret){
+      const caret=document.createRange();
+      caret.setStart(restoredCaret.node,Math.min(restoredCaret.offset,restoredCaret.node.length));
+      caret.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(caret);
+      lastPaperRange=caret.cloneRange();
+    }
+  };
   const getActivePaperRange=()=>{
     const selection=window.getSelection();
     if(selection?.rangeCount&&paperEditor.contains(selection.anchorNode))return selection.getRangeAt(0);
     return lastPaperRange&&paperEditor.contains(lastPaperRange.startContainer)?lastPaperRange:null;
   };
   const normalizePaperBlocks=()=>{
+    repairPaperRootText();
     const blocks=getPaperBlocks();
-    if(!blocks.length)return blocks;
+    if(!blocks.length){
+      const titleBlock=document.createElement('div');
+      titleBlock.dataset.paperBlock='true';
+      titleBlock.dataset.paperLevel='title';
+      titleBlock.dataset.paperHeading='true';
+      paperEditor.append(titleBlock);
+      return [titleBlock];
+    }
     const editorLevel=paperEditor.dataset.headingLevel;
     const breakBlocks=pendingPaperBreakBlocks;
     blocks.forEach((block,index)=>{
@@ -1958,8 +2001,8 @@ body { background:rgb(242,241,246); overflow:hidden }
       if(!block.dataset.paperLevel||isNewBreakBlock){
         block.dataset.paperLevel=pendingPaperBreakLevel||
           (index===0?(editorLevel||'title'):(blocks[index-1]?.dataset.paperLevel||'body'));
+        clearPaperFontStyles(block);
       }
-      clearPaperFontStyles(block);
       block.dataset.paperHeading=String(block.dataset.paperLevel!=='body');
     });
     paperEditor.removeAttribute('data-heading-level');
@@ -1970,7 +2013,11 @@ body { background:rgb(242,241,246); overflow:hidden }
     const range=getActivePaperRange();
     if(range){
       let node=range.startContainer;
-      if(node.nodeType===Node.TEXT_NODE)node=node.parentElement;
+      if(node===paperEditor){
+        node=paperEditor.childNodes[Math.max(0,range.startOffset-1)]||
+          paperEditor.childNodes[range.startOffset]||paperEditor.firstElementChild;
+      }
+      if(node?.nodeType===Node.TEXT_NODE)node=node.parentElement;
       const block=node?.closest?.(paperBlockSelector);
       if(block&&block!==paperEditor)return block;
       return paperEditor;
@@ -1995,6 +2042,20 @@ body { background:rgb(242,241,246); overflow:hidden }
   const getPaperCaretLevel=()=>{
     const block=getPaperCaretBlock();
     return (block===paperEditor?paperEditor.dataset.headingLevel:block.dataset.paperLevel)||'body';
+  };
+  const ensurePaperCaretInsideBlock=()=>{
+    const selection=window.getSelection();
+    if(!selection?.rangeCount||!paperEditor.contains(selection.anchorNode))return;
+    const range=selection.getRangeAt(0);
+    if(!range.collapsed)return;
+    const block=getPaperCaretBlock();
+    if(block===paperEditor||range.startContainer!==paperEditor)return;
+    const caret=document.createRange();
+    caret.selectNodeContents(block);
+    caret.collapse(range.startOffset===0);
+    selection.removeAllRanges();
+    selection.addRange(caret);
+    lastPaperRange=caret.cloneRange();
   };
   const syncHeadingOptions=level=>{
     headingLevel=level;
@@ -2094,7 +2155,10 @@ body { background:rgb(242,241,246); overflow:hidden }
     if(event.target===headingOverlay)setHeadingMenu(false);
   });
   paperViewport.addEventListener('scroll',positionHeadingMenu,{passive:true});
-  paperEditor.addEventListener('focusin',positionPaperIndex);
+  paperEditor.addEventListener('focusin',()=>{
+    ensurePaperCaretInsideBlock();
+    positionPaperIndex();
+  });
   paperEditor.addEventListener('click',positionPaperIndex);
   paperEditor.addEventListener('keyup',positionPaperIndex);
   paperEditor.addEventListener('input',positionPaperIndex);
@@ -2165,10 +2229,8 @@ body { background:rgb(242,241,246); overflow:hidden }
   };
   let paperBreakFrame=0;
   const capturePaperBreak=()=>{
-    const currentBlock=getPaperCaretBlock();
-    pendingPaperBreakLevel=currentBlock===paperEditor
-      ? paperEditor.dataset.headingLevel||headingLevel||'title'
-      : currentBlock.dataset.paperLevel||headingLevel||'body';
+    normalizePaperBlocks();
+    pendingPaperBreakLevel='body';
     pendingPaperBreakBlocks=new Set(getPaperBlocks());
     cancelAnimationFrame(paperBreakFrame);
     paperBreakFrame=requestAnimationFrame(()=>{
@@ -2190,6 +2252,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     if(event.key==='Enter')capturePaperBreak();
   });
   paperEditor.addEventListener('beforeinput',event=>{
+    ensurePaperCaretInsideBlock();
     if(event.inputType==='insertParagraph')capturePaperBreak();
   });
   const draftParts=text=>{
@@ -2617,12 +2680,20 @@ body { background:rgb(242,241,246); overflow:hidden }
     const rect=caret.getBoundingClientRect();
     const bounds=paperViewport.getBoundingClientRect();
     const inset=24;
+    const topInset=parseFloat(getComputedStyle(paperViewport).paddingTop||'0')+inset;
     let left=paperViewport.scrollLeft;
     let top=paperViewport.scrollTop;
     if(rect.right>bounds.right-inset)left+=rect.right-(bounds.right-inset);
     if(rect.left<bounds.left+inset)left-=bounds.left+inset-rect.left;
     if(rect.bottom>bounds.bottom-inset)top+=rect.bottom-(bounds.bottom-inset);
-    if(rect.top<bounds.top+inset)top-=bounds.top+inset-rect.top;
+    if(rect.top<bounds.top+topInset)top-=bounds.top+topInset-rect.top;
+    const blocks=getPaperBlocks();
+    const caretBlockIndex=blocks.indexOf(getPaperCaretBlock());
+    if(caretBlockIndex>=0&&caretBlockIndex<2){
+      const firstTop=blocks[0]?.getBoundingClientRect().top;
+      const revealFirst=bounds.top+topInset-firstTop;
+      if(revealFirst>0&&rect.bottom+revealFirst<bounds.bottom-inset)top-=revealFirst;
+    }
     scrollPaperToCaret(left,top);
   };
   const caretRangeFromPoint=(clientX,clientY)=>{
