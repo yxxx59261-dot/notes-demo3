@@ -2761,35 +2761,55 @@ body { background:rgb(242,241,246); overflow:hidden }
     caret.collapse(true);
     placeCaretAtRange(caret);
   };
+  let pendingPaperTapRange=null;
+  const restorePendingPaperTap=()=>{
+    if(!pendingPaperTapRange||app.dataset.handwriteOpen!=='true')return;
+    paperEditor.focus({preventScroll:true});
+    placeCaretAtRange(pendingPaperTapRange.cloneRange());
+    keepPaperCaretVisible();
+  };
   const enterPaperEditMode=event=>{
     if(app.dataset.handwriteOpen!=='true')return;
+    pendingPaperTapRange=null;
     const from=paperZoom;
     const anchorX=event?.clientX;
     const anchorY=event?.clientY;
     const needsZoom=Math.abs(from-1)>=.01;
     if(paperEditing&&!needsZoom)return;
-    const clickedRange=needsZoom?caretRangeFromPoint(anchorX,anchorY)?.cloneRange():null;
-    if(event?.cancelable)event.preventDefault();
+    const clickedRange=caretRangeFromPoint(anchorX,anchorY)?.cloneRange()||null;
     paperEditing=true;
     cancelPaperZoomAnimation();
-    const finish=()=>{
-      paperEditor.focus({preventScroll:true});
-      if(!placeCaretAtRange(clickedRange))placeCaretAtPoint(anchorX,anchorY);
+    if(needsZoom)setPaperZoom(1,anchorX,anchorY);
+    // Focus while the pointer event still has user activation. Mobile browsers
+    // may not show an editing caret when focus is deferred to the next frame.
+    paperEditor.focus({preventScroll:true});
+    const placed=placeCaretAtRange(clickedRange)||placeCaretAtPoint(anchorX,anchorY);
+    if(placed){
+      pendingPaperTapRange=window.getSelection().getRangeAt(0).cloneRange();
       keepPaperCaretVisible();
-    };
-    if(!needsZoom){
-      finish();
-      return;
     }
-    // Existing notes open in the full-sheet overview. The first click on the
-    // writing area switches to the normal editing scale while keeping the
-    // clicked point under the pointer.
-    setPaperZoom(1,anchorX,anchorY);
-    requestAnimationFrame(finish);
+    requestAnimationFrame(restorePendingPaperTap);
   };
   paperEditor.addEventListener('pointerdown',enterPaperEditMode);
   paperEditor.addEventListener('pointerdown',()=>{followNewNoteEnd=false;});
-  paperEditor.addEventListener('focusin',enterPaperEditMode);
+  paperViewport.addEventListener('pointerup',restorePendingPaperTap);
+  paperViewport.addEventListener('pointercancel',()=>{pendingPaperTapRange=null;});
+  paperEditor.addEventListener('focusin',()=>{
+    if(app.dataset.handwriteOpen!=='true'||paperEditing)return;
+    paperEditing=true;
+    if(Math.abs(paperZoom-1)>=.01)setPaperZoom(1);
+  });
+  paperViewport.addEventListener('click',()=>{
+    if(!pendingPaperTapRange)return;
+    const tappedRange=pendingPaperTapRange.cloneRange();
+    restorePendingPaperTap();
+    pendingPaperTapRange=null;
+    requestAnimationFrame(()=>{
+      if(app.dataset.handwriteOpen!=='true'||document.activeElement!==paperEditor)return;
+      placeCaretAtRange(tappedRange);
+      keepPaperCaretVisible();
+    });
+  });
   paperEditor.addEventListener('input',event=>{
     const text=readDraft();
     if(text.trim()){
@@ -2838,12 +2858,14 @@ body { background:rgb(242,241,246); overflow:hidden }
         // position until the user tapped the paper.
         const targetScrollLeft=Math.max(0,paperBase.textMargin-paperBase.newNoteCaretOffset);
         setPaperZoom(1);
-        paperViewport.scrollLeft=targetScrollLeft;
-        paperViewport.scrollTop=0;
         setPaperPull(0,0);
         paperEditor.focus({preventScroll:true});
         placeCaretAtNoteEnd();
-        positionPaperIndex();
+        requestAnimationFrame(()=>{
+          paperViewport.scrollLeft=targetScrollLeft;
+          paperViewport.scrollTop=0;
+          positionPaperIndex();
+        });
       }
     } else {
       followNewNoteEnd=false;
