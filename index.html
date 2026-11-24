@@ -2407,6 +2407,10 @@ body { background:rgb(242,241,246); overflow:hidden }
   let paperEditing=false;
   let gestureStartZoom=1;
   let paperZoomAnimationFrame=0;
+  let paperTapStart=null;
+  let paperTapMoved=false;
+  let editCenterPoint=null;
+  let editCenterUntil=0;
   const layoutPaperEditor=zoom=>{
     // Keep the editor in the paper's unscaled coordinate system. The stage
     // transform below scales the paper and its text as one surface.
@@ -2460,6 +2464,25 @@ body { background:rgb(242,241,246); overflow:hidden }
       paperViewport.scrollTop=paperStage.offsetTop+beforeY*ratio-anchorY;
     }
   };
+  const centerPaperPoint=(localX,localY)=>{
+    const bounds=paperViewport.getBoundingClientRect();
+    const scaleX=bounds.width/(paperViewport.clientWidth||1);
+    const scaleY=bounds.height/(paperViewport.clientHeight||1);
+    const visibleLeft=Math.max(bounds.left,window.visualViewport?.offsetLeft||0);
+    const visibleRight=Math.min(bounds.right,(window.visualViewport?.offsetLeft||0)+(window.visualViewport?.width||innerWidth));
+    const topInset=parseFloat(getComputedStyle(paperViewport).paddingTop||'0')*scaleY;
+    const visibleTop=Math.max(bounds.top+topInset,window.visualViewport?.offsetTop||0);
+    const visibleBottom=Math.min(bounds.bottom,(window.visualViewport?.offsetTop||0)+(window.visualViewport?.height||innerHeight));
+    const centerX=((visibleRight>visibleLeft?(visibleLeft+visibleRight)/2:bounds.left+bounds.width/2)-bounds.left)/scaleX;
+    const centerY=((visibleBottom>visibleTop?(visibleTop+visibleBottom)/2:bounds.top+bounds.height/2)-bounds.top)/scaleY;
+    paperViewport.scrollLeft=paperStage.offsetLeft+localX*paperZoom-centerX;
+    paperViewport.scrollTop=paperStage.offsetTop+localY*paperZoom-centerY;
+  };
+  const recenterPendingEdit=()=>{
+    if(!editCenterPoint)return;
+    if(performance.now()>editCenterUntil){editCenterPoint=null;return;}
+    centerPaperPoint(editCenterPoint.x,editCenterPoint.y);
+  };
   const getPaperFitZoom=()=>{
     const width=paperViewport.clientWidth;
     const height=paperViewport.clientHeight;
@@ -2497,13 +2520,15 @@ body { background:rgb(242,241,246); overflow:hidden }
     if(paperZoomAnimationFrame){cancelAnimationFrame(paperZoomAnimationFrame);paperZoomAnimationFrame=0;}
   };
   paperViewport.addEventListener('wheel',event=>{
+    editCenterPoint=null;
     if(!event.ctrlKey)return;
+    paperTapMoved=true;
     event.preventDefault();
     setPaperZoom(paperZoom*Math.exp(-event.deltaY*.002),event.clientX,event.clientY);
   },{passive:false});
-  paperViewport.addEventListener('gesturestart',event=>{ gestureStartZoom=paperZoom; event.preventDefault(); },{passive:false});
-  paperViewport.addEventListener('gesturechange',event=>{ event.preventDefault(); setPaperZoom(gestureStartZoom*event.scale,event.clientX,event.clientY); },{passive:false});
-  paperViewport.addEventListener('gestureend',event=>event.preventDefault(),{passive:false});
+  paperViewport.addEventListener('gesturestart',event=>{ gestureStartZoom=paperZoom; paperTapMoved=true; event.preventDefault(); },{passive:false});
+  paperViewport.addEventListener('gesturechange',event=>{ paperTapMoved=true; event.preventDefault(); setPaperZoom(gestureStartZoom*event.scale,event.clientX,event.clientY); },{passive:false});
+  paperViewport.addEventListener('gestureend',event=>{ paperTapMoved=true; event.preventDefault(); },{passive:false});
   const blockNativeGesture=event=>{ if(app.dataset.handwriteOpen==='true') event.preventDefault(); };
   document.addEventListener('gesturestart',blockNativeGesture,{passive:false});
   document.addEventListener('gesturechange',blockNativeGesture,{passive:false});
@@ -2545,10 +2570,12 @@ body { background:rgb(242,241,246); overflow:hidden }
     paperPullFrame=requestAnimationFrame(step);
   };
   paperViewport.addEventListener('touchstart',event=>{
+    editCenterPoint=null;
     cancelPaperZoomAnimation();
     cancelAnimationFrame(paperPullFrame);
     setPaperPull(0,0);
     if(event.touches.length===2){
+      paperTapMoved=true;
       cancelAnimationFrame(flingFrame);
       touchLock='';
       const [a,b]=event.touches;
@@ -2557,6 +2584,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       gestureStartZoom=paperZoom;
       paperCanvas.classList.remove('is-pulled');
     } else if(event.touches.length===1){
+      if(!pinchActive)paperTapMoved=false;
       touchStartY=event.touches[0].clientY;
       touchStartX=event.touches[0].clientX;
       touchStartTime=event.timeStamp||performance.now();
@@ -2574,6 +2602,7 @@ body { background:rgb(242,241,246); overflow:hidden }
   },{passive:true});
   paperViewport.addEventListener('touchmove',event=>{
     if(event.touches.length===2&&touchStartDistance){
+      paperTapMoved=true;
       event.preventDefault();
       const [a,b]=event.touches;
       const distance=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
@@ -2581,10 +2610,12 @@ body { background:rgb(242,241,246); overflow:hidden }
       return;
     }
     if(event.touches.length===1){
+      if(pinchActive){event.preventDefault();return;}
       const touch=event.touches[0];
       const dx=touch.clientX-touchStartX;
       const dy=touch.clientY-touchStartY;
       const distance=Math.hypot(dx,dy);
+      if(distance>8)paperTapMoved=true;
       const elapsed=Math.max(1,(event.timeStamp||performance.now())-touchStartTime);
       const speed=distance/elapsed;
       if(!touchLock&&distance>8){
@@ -2661,15 +2692,18 @@ body { background:rgb(242,241,246); overflow:hidden }
     });
   };
   const returnPaper=(event)=>{
-    if(pinchActive && event && event.touches && event.touches.length===0) snapPaperToNormal();
-    if(!pinchActive){
+    // Do not turn the remaining finger of a pinch into a fresh pan or tap.
+    const endedPinch=pinchActive;
+    if(endedPinch&&event?.touches?.length)return;
+    if(endedPinch&&event?.touches?.length===0)snapPaperToNormal();
+    if(!endedPinch){
       if(Math.abs(paperPullX)+Math.abs(paperPullY)>0.5)animatePaperPullBack();
       else startFling();
     }
     touchStartDistance=0; touchStartY=0; touchStartX=0; touchStartTime=0; touchStartScrollTop=0; touchStartScrollLeft=0; touchLastX=0; touchLastY=0; touchLastTime=0; touchVelocityX=0; touchVelocityY=0; touchLock='';
   };
   paperViewport.addEventListener('touchend',returnPaper,{passive:true});
-  paperViewport.addEventListener('touchcancel',event=>{ if(pinchActive) snapPaperToNormal(); returnPaper(event); },{passive:true});
+  paperViewport.addEventListener('touchcancel',event=>{ paperTapMoved=true; returnPaper(event); },{passive:true});
   let caretScrollFrame=0;
   const scrollPaperToCaret=(left,top)=>{
     if(left===paperViewport.scrollLeft&&top===paperViewport.scrollTop)return;
@@ -2761,56 +2795,56 @@ body { background:rgb(242,241,246); overflow:hidden }
     caret.collapse(true);
     placeCaretAtRange(caret);
   };
-  let pendingPaperTapRange=null;
-  const restorePendingPaperTap=()=>{
-    if(!pendingPaperTapRange||app.dataset.handwriteOpen!=='true')return;
-    paperEditor.focus({preventScroll:true});
-    placeCaretAtRange(pendingPaperTapRange.cloneRange());
-    keepPaperCaretVisible();
-  };
   const enterPaperEditMode=event=>{
-    if(app.dataset.handwriteOpen!=='true')return;
-    pendingPaperTapRange=null;
-    const from=paperZoom;
-    const anchorX=event?.clientX;
-    const anchorY=event?.clientY;
-    const needsZoom=Math.abs(from-1)>=.01;
+    if(app.dataset.handwriteOpen!=='true'||paperTapMoved||pinchActive)return;
+    const needsZoom=paperZoom<.99;
     if(paperEditing&&!needsZoom)return;
-    const clickedRange=caretRangeFromPoint(anchorX,anchorY)?.cloneRange()||null;
+    const canvasBounds=paperCanvas.getBoundingClientRect();
+    const canvasScale=canvasBounds.width/(paperCanvas.offsetWidth||paperBase.width)||1;
+    const tappedX=(event.clientX-canvasBounds.left)/canvasScale;
+    const tappedY=(event.clientY-canvasBounds.top)/canvasScale;
+    const clickedRange=caretRangeFromPoint(event.clientX,event.clientY)?.cloneRange()||null;
+    if(event.cancelable)event.preventDefault();
     paperEditing=true;
+    paperEditor.contentEditable='true';
+    paperEditor.setAttribute('aria-readonly','false');
     cancelPaperZoomAnimation();
-    if(needsZoom)setPaperZoom(1,anchorX,anchorY);
-    // Focus while the pointer event still has user activation. Mobile browsers
-    // may not show an editing caret when focus is deferred to the next frame.
-    paperEditor.focus({preventScroll:true});
-    const placed=placeCaretAtRange(clickedRange)||placeCaretAtPoint(anchorX,anchorY);
-    if(placed){
-      pendingPaperTapRange=window.getSelection().getRangeAt(0).cloneRange();
-      keepPaperCaretVisible();
+    cancelAnimationFrame(flingFrame);
+    cancelAnimationFrame(caretScrollFrame);
+    setPaperPull(0,0);
+    if(needsZoom){
+      setPaperZoom(1,event.clientX,event.clientY);
     }
-    requestAnimationFrame(restorePendingPaperTap);
+    paperEditor.focus({preventScroll:true});
+    if(!placeCaretAtRange(clickedRange))placeCaretAtNoteEnd();
+    if(needsZoom){
+      editCenterPoint={x:tappedX,y:tappedY};
+      editCenterUntil=performance.now()+700;
+      recenterPendingEdit();
+      requestAnimationFrame(recenterPendingEdit);
+    }
+    positionPaperIndex();
   };
-  paperEditor.addEventListener('pointerdown',enterPaperEditMode);
-  paperEditor.addEventListener('pointerdown',()=>{followNewNoteEnd=false;});
-  paperViewport.addEventListener('pointerup',restorePendingPaperTap);
-  paperViewport.addEventListener('pointercancel',()=>{pendingPaperTapRange=null;});
-  paperEditor.addEventListener('focusin',()=>{
-    if(app.dataset.handwriteOpen!=='true'||paperEditing)return;
-    paperEditing=true;
-    if(Math.abs(paperZoom-1)>=.01)setPaperZoom(1);
+  paperCanvas.addEventListener('pointerdown',event=>{
+    editCenterPoint=null;
+    if(event.target.closest('.paper-index'))return;
+    if(pinchActive){paperTapMoved=true;return;}
+    if(event.isPrimary===false){paperTapMoved=true;return;}
+    paperTapStart={id:event.pointerId,x:event.clientX,y:event.clientY};
+    paperTapMoved=false;
   });
-  paperViewport.addEventListener('click',()=>{
-    if(!pendingPaperTapRange)return;
-    const tappedRange=pendingPaperTapRange.cloneRange();
-    restorePendingPaperTap();
-    pendingPaperTapRange=null;
-    requestAnimationFrame(()=>{
-      if(app.dataset.handwriteOpen!=='true'||document.activeElement!==paperEditor)return;
-      placeCaretAtRange(tappedRange);
-      keepPaperCaretVisible();
-    });
+  paperViewport.addEventListener('pointermove',event=>{
+    if(paperTapStart?.id===event.pointerId&&Math.hypot(event.clientX-paperTapStart.x,event.clientY-paperTapStart.y)>8)paperTapMoved=true;
+  });
+  paperViewport.addEventListener('pointercancel',()=>{paperTapMoved=true;});
+  paperEditor.addEventListener('pointerdown',()=>{followNewNoteEnd=false;});
+  paperCanvas.addEventListener('click',event=>{
+    if(event.target.closest('.paper-index'))return;
+    enterPaperEditMode(event);
+    paperTapStart=null;
   });
   paperEditor.addEventListener('input',event=>{
+    editCenterPoint=null;
     const text=readDraft();
     if(text.trim()){
       updateDraftCard(text);
@@ -2826,7 +2860,9 @@ body { background:rgb(242,241,246); overflow:hidden }
   });
   paperEditor.addEventListener('input',keepPaperCaretVisible);
   paperEditor.addEventListener('keyup',keepPaperCaretVisible);
-  paperEditor.addEventListener('click',keepPaperCaretVisible);
+  paperEditor.addEventListener('click',()=>{
+    if(paperEditing&&Math.abs(paperZoom-1)<.01)keepPaperCaretVisible();
+  });
   const openHandwrite=(next,noteCard=null)=>{
     if(!next)saveCurrentNote();
     app.dataset.handwriteOpen=String(next);
@@ -2835,6 +2871,8 @@ body { background:rgb(242,241,246); overflow:hidden }
       // 新建从空白纸开始；点击已有卡片时加载对应笔记内容。
       const noteText=noteCard?noteBodyForCard(noteCard):'';
       setPaperEditorText(noteText);
+      paperEditor.contentEditable=noteCard?'false':'true';
+      paperEditor.setAttribute('aria-readonly',String(Boolean(noteCard)));
       currentDraftCard=noteCard||null;
       currentDraftText=noteText;
       followNewNoteEnd=!noteCard;
@@ -3183,12 +3221,14 @@ body { background:rgb(242,241,246); overflow:hidden }
     const layoutHeight=keyboardOpen?812:height;
     app.style.height=layoutHeight+'px';app.style.transform='scale('+scale+')';
     handwriteScreen.dataset.keyboardOpen=String(keyboardOpen);
+    paperViewport.style.height=keyboardOpen?height+'px':'';
     device.style.width=(375*scale)+'px';device.style.height=(layoutHeight*scale)+'px';
     // Keep the editor within the visible part of the demo when its frame is cropped.
     handwriteScreen.style.insetInline=(Math.max(0,375-viewportWidth/scale)/2)+'px';
     handwriteScreen.style.bottom='0px';
     if(paperFitted)setPaperZoom(0);
     else layoutPaperEditor(paperZoom);
+    recenterPendingEdit();
     const tabs=app.querySelector('.n1-tabs-1');
     const tabsHeight=tabs ? tabs.offsetHeight : 48;
     const bottomGap=20;
