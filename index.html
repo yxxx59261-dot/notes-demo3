@@ -458,7 +458,7 @@ body { background:rgb(242,241,246); overflow:hidden }
 .handwrite-back img { display:block; width:24px; height:24px; opacity:.58; filter:grayscale(1); pointer-events:none; user-select:none; }
 .handwrite-actions { position:absolute; right:14px; top:calc(50% - 18px); display:flex; align-items:flex-end; gap:13px; }
 .handwrite-actions button { width:24px; height:24px; flex:0 0 24px; }
-.handwrite-actions .handwrite-fit { width:28px !important; height:24px !important; flex:0 0 28px !important; display:flex !important; align-items:center !important; justify-content:center !important; color:#444; font:600 14px/24px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; letter-spacing:0; }
+.handwrite-actions .handwrite-fit { width:28px !important; height:24px !important; flex:0 0 28px !important; display:flex !important; align-items:center !important; justify-content:center !important; color:#444; font:600 14px/24px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; letter-spacing:0; transform:translateY(8px) !important; }
 .handwrite-actions .handwrite-fit:active { opacity:.58; }
 /* Keep the toolbar icons vector-like and transparent over the gray toolbar. */
 .handwrite-actions img { display:none; }
@@ -3233,12 +3233,15 @@ body { background:rgb(242,241,246); overflow:hidden }
     const scale=Math.max(viewportWidth/375,viewportHeight/812);
     const height=Math.min(812,Math.max(1,viewportHeight/scale));
     const stage=document.querySelector('.demo-stage');
-    if(stage)stage.style.height=viewportHeight+'px';
-    const layoutHeight=keyboardOpen?812:height;
-    app.style.height=layoutHeight+'px';app.style.transform='scale('+scale+')';
+    if(stage){
+      stage.style.height=viewportHeight+'px';
+      // Mobile browsers can pan the visual viewport to the focused caret.
+      stage.style.transform=`translateY(${scrollY+(viewport?.offsetTop||0)}px)`;
+    }
+    app.style.height=height+'px';app.style.transform='scale('+scale+')';
     handwriteScreen.dataset.keyboardOpen=String(keyboardOpen);
-    paperViewport.style.height=keyboardOpen?height+'px':'';
-    device.style.width=(375*scale)+'px';device.style.height=(layoutHeight*scale)+'px';
+    paperViewport.style.height='';
+    device.style.width=(375*scale)+'px';device.style.height=(height*scale)+'px';
     // Keep the editor within the visible part of the demo when its frame is cropped.
     handwriteScreen.style.insetInline=(Math.max(0,375-viewportWidth/scale)/2)+'px';
     handwriteScreen.style.bottom='0px';
