@@ -2577,7 +2577,8 @@ body { background:rgb(242,241,246); overflow:hidden }
     cancelPaperZoomAnimation();
     cancelAnimationFrame(flingFrame);
     cancelAnimationFrame(caretScrollFrame);
-    if(Math.abs(paperZoom-1)<.001)return;
+    const targetZoom=getPaperTextFitZoom();
+    if(Math.abs(paperZoom-targetZoom)<.001)return;
     const startZoom=paperZoom;
     const startLeft=paperViewport.scrollLeft;
     const startTop=paperViewport.scrollTop;
@@ -2589,13 +2590,13 @@ body { background:rgb(242,241,246); overflow:hidden }
       paperViewport.scrollTop=startTop*(1-progress);
     };
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-      setPaperZoom(1);
+      setPaperZoom(targetZoom);
       alignPaper(1);
       positionPaperIndex();
       return;
     }
-    animatePaperZoom(startZoom,1,420,()=>{
-      layoutPaperEditor(1);
+    animatePaperZoom(startZoom,targetZoom,420,()=>{
+      layoutPaperEditor(targetZoom);
       positionPaperIndex();
       if(headingMenuOpen)positionHeadingMenu();
     },{onFrame:alignPaper});
