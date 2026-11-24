@@ -1930,9 +1930,17 @@ body { background:rgb(242,241,246); overflow:hidden }
   let headingMenuOpen=false;
   let headingLevel='title';
   let pendingPaperBreakLevel=null;
+  let pendingPaperBreakBlocks=null;
   let paperIndexTouchHandledUntil=0;
   let lastPaperRange=null;
   const paperBlockSelector='[data-paper-block],p,div';
+  const clearPaperFontStyles=element=>{
+    if(!element?.style)return;
+    ['font','font-family','font-size','font-weight','font-style','line-height','letter-spacing'].forEach(property=>element.style.removeProperty(property));
+    element.querySelectorAll?.('[style]').forEach(child=>{
+      ['font','font-family','font-size','font-weight','font-style','line-height','letter-spacing'].forEach(property=>child.style.removeProperty(property));
+    });
+  };
   const getPaperBlocks=()=>[...paperEditor.children].filter(node=>node.matches?.(paperBlockSelector));
   const getActivePaperRange=()=>{
     const selection=window.getSelection();
@@ -1943,16 +1951,18 @@ body { background:rgb(242,241,246); overflow:hidden }
     const blocks=getPaperBlocks();
     if(!blocks.length)return blocks;
     const editorLevel=paperEditor.dataset.headingLevel;
-    const defaultLevel=pendingPaperBreakLevel||editorLevel||headingLevel;
+    const breakBlocks=pendingPaperBreakBlocks;
     blocks.forEach((block,index)=>{
       block.dataset.paperBlock='true';
-      if(!block.dataset.paperLevel){
-        block.dataset.paperLevel=defaultLevel||(index===0?'title':'body');
+      const isNewBreakBlock=Boolean(breakBlocks&&pendingPaperBreakLevel&&!breakBlocks.has(block));
+      if(!block.dataset.paperLevel||isNewBreakBlock){
+        block.dataset.paperLevel=pendingPaperBreakLevel||
+          (index===0?(editorLevel||'title'):(blocks[index-1]?.dataset.paperLevel||'body'));
       }
+      clearPaperFontStyles(block);
       block.dataset.paperHeading=String(block.dataset.paperLevel!=='body');
     });
     paperEditor.removeAttribute('data-heading-level');
-    pendingPaperBreakLevel=null;
     return blocks;
   };
   const getPaperCaretBlock=()=>{
@@ -1973,6 +1983,10 @@ body { background:rgb(242,241,246); overflow:hidden }
     const blocks=normalizePaperBlocks();
     const range=getActivePaperRange();
     if(!range)return [];
+    if(range.collapsed){
+      const block=getPaperCaretBlock();
+      return block===paperEditor?[]:[block];
+    }
     const selected=blocks.filter(block=>{
       try{return range.intersectsNode(block)}catch{return false;}
     });
@@ -2045,14 +2059,16 @@ body { background:rgb(242,241,246); overflow:hidden }
       selectedBlocks.forEach(selectedBlock=>{
         selectedBlock.dataset.paperLevel=level;
         selectedBlock.dataset.paperHeading=String(level!=='body');
+        clearPaperFontStyles(selectedBlock);
       });
       paperEditor.removeAttribute('data-heading-level');
     }else if(block&&block!==paperEditor){
       block.dataset.paperLevel=level;
       block.dataset.paperHeading=String(level!=='body');
+      clearPaperFontStyles(block);
       paperEditor.removeAttribute('data-heading-level');
     }else{
-      // A brand-new empty note has no block element until the first line break.
+      // Keep the fallback for an unexpected root-level browser selection.
       paperEditor.dataset.headingLevel=level;
     }
     syncHeadingOptions(level);
@@ -2104,37 +2120,37 @@ body { background:rgb(242,241,246); overflow:hidden }
       time:`${pad(date.getHours())}:${pad(date.getMinutes())}`
     };
   };
-  const readDraft=()=>String(paperEditor.innerText||paperEditor.textContent||'').replace(/\u00a0/g,' ').replace(/\r/g,'').trim();
+  const readDraft=()=>String(paperEditor.innerText||paperEditor.textContent||'').replace(/\u00a0/g,' ').replace(/\r/g,'');
   const setPaperEditorText=text=>{
-    const sourceLines=String(text||'').replace(/\r/g,'').split('\n');
-    const lines=[];
-    for(let index=0;index<sourceLines.length;index++){
-      const marker=sourceLines[index].trim();
-      if(marker==='Article Information'||marker==='文章信息'){
-        index+=4;
-        continue;
-      }
-      lines.push(sourceLines[index]);
-    }
+    const lines=String(text??'').replace(/\r/g,'').split('\n');
     pendingPaperBreakLevel=null;
+    pendingPaperBreakBlocks=null;
     paperEditor.replaceChildren();
     if(lines.length===1){
-      paperEditor.append(document.createTextNode(lines[0]||''));
-      paperEditor.dataset.headingLevel='title';
+      const titleBlock=document.createElement('div');
+      titleBlock.textContent=lines[0]||'';
+      titleBlock.dataset.paperBlock='true';
+      titleBlock.dataset.paperLevel='title';
+      titleBlock.dataset.paperHeading='true';
+      paperEditor.append(titleBlock);
+      paperEditor.removeAttribute('data-heading-level');
+      const caret=document.createRange();
+      caret.selectNodeContents(titleBlock);
+      caret.collapse(false);
+      const selection=window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(caret);
+      lastPaperRange=caret.cloneRange();
       requestAnimationFrame(positionPaperIndex);
       return;
     }
     paperEditor.removeAttribute('data-heading-level');
     lines.forEach((line,index)=>{
       const block=document.createElement('div');
-      const displayLine=line
-        .replace(/^Article Information$/, '文章信息')
-        .replace(/^Author：/, '作者：')
-        .replace(/^Published：/, '发布日期：');
-      block.textContent=displayLine;
+      block.textContent=line;
       block.dataset.paperHeading=index===0?'true':'false';
       block.dataset.paperBlock='true';
-      const trimmed=displayLine.trim();
+      const trimmed=line.trim();
       const isTitle=index===0;
       const isInfoHeading=trimmed==='文章信息'||trimmed==='Article Information';
       const isSection=/^(?:[一二三四五六七八九十]+、|待跟进$|下次继续观察$|下次使用模板$|结语$)/.test(trimmed);
@@ -2147,23 +2163,34 @@ body { background:rgb(242,241,246); overflow:hidden }
     });
     requestAnimationFrame(positionPaperIndex);
   };
-  paperEditor.addEventListener('keydown',event=>{
-    if(event.key!=='Enter')return;
+  let paperBreakFrame=0;
+  const capturePaperBreak=()=>{
     const currentBlock=getPaperCaretBlock();
     pendingPaperBreakLevel=currentBlock===paperEditor
       ? paperEditor.dataset.headingLevel||headingLevel||'title'
       : currentBlock.dataset.paperLevel||headingLevel||'body';
-    const before=new Set(getPaperBlocks());
-    requestAnimationFrame(()=>{
+    pendingPaperBreakBlocks=new Set(getPaperBlocks());
+    cancelAnimationFrame(paperBreakFrame);
+    paperBreakFrame=requestAnimationFrame(()=>{
+      paperBreakFrame=0;
+      const before=pendingPaperBreakBlocks;
       const blocks=normalizePaperBlocks();
       blocks.forEach(block=>{
-        if(!before.has(block)){
+        if(before&&!before.has(block)){
           block.classList.add('is-entering');
           block.addEventListener('animationend',()=>block.classList.remove('is-entering'),{once:true});
         }
       });
+      pendingPaperBreakLevel=null;
+      pendingPaperBreakBlocks=null;
       requestAnimationFrame(positionPaperIndex);
     });
+  };
+  paperEditor.addEventListener('keydown',event=>{
+    if(event.key==='Enter')capturePaperBreak();
+  });
+  paperEditor.addEventListener('beforeinput',event=>{
+    if(event.inputType==='insertParagraph')capturePaperBreak();
   });
   const draftParts=text=>{
     const lines=text.split('\n').map(line=>line.trim()).filter(Boolean);
@@ -2171,35 +2198,9 @@ body { background:rgb(242,241,246); overflow:hidden }
     const summary=lines.join(' ').replace(/\s+/g,' ').trim();
     return {title,summary};
   };
-  const noteBodyForCard=card=>{
-    if(card?.dataset.noteContent)return card.dataset.noteContent;
-    const title=(card.querySelector('.n1-text-3,.n2-text-3,.n3-text-3,.n4-layer-24')?.textContent||'未命名笔记').trim();
-    const summary=(card.querySelector('.n1-summary-2,.n2-summary-2,.n3-summary-2,.n4-layer-25')?.textContent||'').trim();
-    const article=[
-      summary||'这是一篇从笔记列表打开的示例文章。',
-      'Article Information',
-      'Author：读写客编辑部',
-      'Published：2026年11月22日',
-      '阅读时间：3 分钟',
-      '来源：公开资料整理',
-      '',
-      '一、事件背景',
-      '过去几年，国际关系与全球经济都在快速变化。各国在面对安全、贸易和技术问题时，既需要保持沟通，也需要重新寻找合作的边界。一次重要的会晤，往往不只决定当天的新闻标题，也会影响之后一段时间的政策节奏。',
-      '',
-      '二、现场观察',
-      '从公开信息来看，本次交流释放出了继续对话的信号。不同立场之间仍然存在明显分歧，但各方都在避免让分歧失去控制。对普通读者而言，最值得关注的并不是某一句话，而是各方是否愿意把短期的姿态转化为持续、稳定的行动。',
-      '',
-      '三、影响与判断',
-      '首先，稳定的沟通可以降低误判风险，为后续谈判保留空间。其次，经济与科技议题正在成为新的连接点，未来的合作会更多地发生在具体项目和实际利益上。最后，任何结论都需要放回更长的时间尺度中观察，单次会晤很难立刻改变所有问题，但可以改变问题继续发展的方向。',
-      '',
-      '四、接下来值得关注的事',
-      '一是后续是否会出现更明确的执行安排；二是相关国家能否在分歧较大的议题上建立最低限度的共识；三是市场、产业和普通人的生活是否会感受到这些变化。把这些线索放在一起，才能形成比单条新闻更完整的判断。',
-      '',
-      '结语',
-      '记录一篇文章的意义，不只是保存已经发生的内容，也是在为之后的回看留下线索。等新的信息出现时，可以继续在这份笔记里补充事实、观点和待验证的问题。'
-    ].join('\n\n');
-    return `${title}\n\n${article}`;
-  };
+  // A card must reopen with exactly the text that was edited into it. An
+  // absent value is an empty note, not a cue to generate placeholder content.
+  const noteBodyForCard=card=>card?.dataset.noteContent??'';
   const makeNoteCardInteractive=card=>{
     if(!card||!isOpenableNote(card))return;
     card.setAttribute('role','button');
@@ -2239,7 +2240,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     makeNoteCardInteractive(card);
   });
   const updateDraftCard=(text,now=new Date())=>{
-    if(!text)return;
+    if(!text.trim())return;
     if(!currentDraftCard){
       const noteIcon=noteCardTemplate.querySelector('.n1-icon-6,.n1-icon-5')?.cloneNode(true);
       currentDraftCard=noteCardTemplate.cloneNode(false);
@@ -2284,6 +2285,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     }
     const parts=draftParts(text);
     const partsDate=localDateParts(now);
+    currentDraftCard.dataset.noteContent=text;
     currentDraftCard.dataset.modified=partsDate.iso;
     const title=currentDraftCard.querySelector('.n1-text-3');
     const summary=currentDraftCard.querySelector('.n1-summary-2');
@@ -2296,10 +2298,17 @@ body { background:rgb(242,241,246); overflow:hidden }
   };
   const saveCurrentNote=()=>{
     const text=readDraft();
-    if(!text){
+    if(!text.trim()){
       if(currentDraftCard?.dataset.dynamicNote){
         const index=noteCards.indexOf(currentDraftCard);
         if(index>=0)noteCards.splice(index,1);
+      }else if(currentDraftCard){
+        currentDraftCard.dataset.noteContent='';
+        const title=currentDraftCard.querySelector('.n1-text-3');
+        const summary=currentDraftCard.querySelector('.n1-summary-2');
+        if(title)title.textContent='未命名笔记';
+        if(summary)summary.textContent='';
+        updateNotes();
       }
       currentDraftCard=null;
       currentDraftText='';
@@ -2636,6 +2645,10 @@ body { background:rgb(242,241,246); overflow:hidden }
   const placeCaretAtPoint=(clientX,clientY)=>{
     const range=caretRangeFromPoint(clientX,clientY);
     if(!range)return false;
+    return placeCaretAtRange(range);
+  };
+  const placeCaretAtRange=range=>{
+    if(!range||!paperEditor.contains(range.startContainer))return false;
     range.collapse(true);
     const selection=window.getSelection();
     selection.removeAllRanges();
@@ -2650,12 +2663,13 @@ body { background:rgb(242,241,246); overflow:hidden }
     const anchorY=event?.clientY;
     const needsZoom=Math.abs(from-1)>=.01;
     if(paperEditing&&!needsZoom)return;
+    const clickedRange=needsZoom?caretRangeFromPoint(anchorX,anchorY)?.cloneRange():null;
     if(event?.cancelable)event.preventDefault();
     paperEditing=true;
     cancelPaperZoomAnimation();
     const finish=()=>{
       paperEditor.focus({preventScroll:true});
-      placeCaretAtPoint(anchorX,anchorY);
+      if(!placeCaretAtRange(clickedRange))placeCaretAtPoint(anchorX,anchorY);
       keepPaperCaretVisible();
     };
     if(!needsZoom){
@@ -2672,7 +2686,16 @@ body { background:rgb(242,241,246); overflow:hidden }
   paperEditor.addEventListener('focusin',enterPaperEditMode);
   paperEditor.addEventListener('input',()=>{
     const text=readDraft();
-    if(text)updateDraftCard(text);
+    if(text.trim()){
+      updateDraftCard(text);
+      return;
+    }
+    // Keep an existing card's saved body in sync when the editor is cleared.
+    if(currentDraftCard){
+      currentDraftCard.dataset.noteContent='';
+      currentDraftCard.dataset.modified=localDateParts(new Date()).iso;
+      currentDraftText='';
+    }
   });
   paperEditor.addEventListener('input',keepPaperCaretVisible);
   paperEditor.addEventListener('keyup',keepPaperCaretVisible);
