@@ -458,7 +458,7 @@ body { background:rgb(242,241,246); overflow:hidden }
 .handwrite-back img { display:block; width:24px; height:24px; opacity:.58; filter:grayscale(1); pointer-events:none; user-select:none; }
 .handwrite-actions { position:absolute; right:14px; top:calc(50% - 18px); display:flex; align-items:flex-end; gap:13px; }
 .handwrite-actions button { width:24px; height:24px; flex:0 0 24px; }
-.handwrite-actions .handwrite-fit { width:28px !important; height:24px !important; flex:0 0 28px !important; display:flex !important; align-items:center !important; justify-content:center !important; color:#444; font:600 14px/24px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; letter-spacing:0; transform:translateY(6.5px) !important; }
+.handwrite-actions .handwrite-fit { width:28px !important; height:24px !important; flex:0 0 28px !important; display:flex !important; align-items:center !important; justify-content:center !important; color:#444; font:600 14px/24px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; letter-spacing:0; transform:translateY(5.5px) !important; }
 .handwrite-actions .handwrite-fit:active { opacity:.58; }
 /* Keep the toolbar icons vector-like and transparent over the gray toolbar. */
 .handwrite-actions img { display:none; }
@@ -2536,11 +2536,14 @@ body { background:rgb(242,241,246); overflow:hidden }
     editCenterPoint=null;
     paperTapMoved=true;
     cancelPaperZoomAnimation();
+    cancelAnimationFrame(flingFrame);
+    cancelAnimationFrame(caretScrollFrame);
     setPaperZoom(getPaperTextFitZoom());
     requestAnimationFrame(()=>{
       const width=paperViewport.clientWidth;
       const sideGap=Math.min(20,width*.08);
       paperViewport.scrollLeft=Math.max(0,paperStage.offsetLeft+paperBase.textMargin*paperZoom-sideGap);
+      paperViewport.scrollTop=0;
       positionPaperIndex();
     });
   });
