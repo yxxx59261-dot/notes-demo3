@@ -462,15 +462,16 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar { left:0; right:0; height:38px; display:block; background:transparent; border-top:0; box-shadow:none; transform:translateY(14px); overflow:visible; }
 .handwrite-screen[data-keyboard-open="true"] .edit-toolbar { opacity:1; visibility:visible; pointer-events:none; transform:translateY(0); transition:opacity 180ms ease,transform 260ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
 .edit-toolbar-row { display:flex; align-items:center; box-sizing:border-box; }
-.edit-toolbar-row.edit-toolbar-main { width:calc(100% - 51px); height:36px; gap:16px; padding:3px 16px; background:#fff; border-radius:0; box-shadow:none; }
-.edit-toolbar-row.edit-toolbar-format { position:absolute; left:0; bottom:47px; width:338px; height:38px; gap:16px; padding:4px 16px; background:#fff; border-radius:0; box-shadow:none; opacity:0; visibility:hidden; pointer-events:none; transform:translateY(5px); transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s 180ms; }
-.edit-toolbar[data-format-open="true"] .edit-toolbar-format { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
+.edit-toolbar-row.edit-toolbar-main { width:calc(100% - 51px); height:36px; gap:16px; padding:3px 16px; background:#fff; border-radius:0; box-shadow:none; pointer-events:auto; }
+.edit-toolbar-row.edit-toolbar-format { position:absolute; left:50%; bottom:47px; z-index:2; width:338px; height:38px; gap:16px; padding:4px 16px; background:#fff; border-radius:19px; box-shadow:0 0 15px rgba(202,202,202,.3); opacity:0; visibility:hidden; pointer-events:none; transform:translate(-50%,5px) scale(.98); transform-origin:center bottom; transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s 180ms; }
+.edit-toolbar[data-format-open="true"] .edit-toolbar-format { opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,0) scale(1); transition:opacity 160ms ease,transform 220ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
 .edit-toolbar-button { position:relative; flex:0 0 30px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:0; border-radius:4px; padding:4px; box-sizing:border-box; background:transparent; color:#404040; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-button:active { background:rgba(65,105,225,.08); }
 .edit-toolbar-main .edit-toolbar-button.is-active { color:#404040; background:#f1f4ff; box-shadow:none; }
+.edit-toolbar-main [data-edit-action="format-text"].is-active { color:#4169e1; background:#f1f4ff; }
 .edit-toolbar-main .edit-toolbar-button.is-disabled { color:#9a9a9a; background:transparent; box-shadow:none; }
 .edit-toolbar-button:disabled { color:#9a9a9a; cursor:default; pointer-events:none; }
-.edit-toolbar-format .edit-toolbar-button.is-active { color:#404040; background:#f1f4ff; box-shadow:none; }
+.edit-toolbar-format .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; border:1px solid #afc7ee; box-shadow:none; }
 .edit-toolbar-button:focus-visible { outline:2px solid #4169e1; outline-offset:-2px; }
 .edit-toolbar-glyph { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; line-height:1; white-space:nowrap; }
 .edit-toolbar-glyph--t { font-size:28px; font-weight:500; font-family:Georgia,"Times New Roman",serif; }
@@ -2241,12 +2242,13 @@ body { background:rgb(242,241,246); overflow:hidden }
     const activeBlock=getPaperCaretBlock();
     editToolbarButtons.forEach(button=>{
       const action=button.dataset.editAction;
+      const formatAction=['body','title','subtitle','section','unordered-list','ordered-list','dotted-list'].includes(action);
       const active=action==='format-text'?editToolbar.dataset.formatOpen==='true':
         action==='text-style'?activeBlock?.dataset.paperBold==='true':
         action==='align-left'?activeBlock?.dataset.paperAlign==='left':
         action==='checklist'?activeBlock?.dataset.paperChecklist==='true':
         action===level;
-      const enabled=action==='format-text'||action==='text-style'||action==='align-left'||action==='checklist'||
+      const enabled=action==='format-text'||formatAction||action==='text-style'||action==='align-left'||action==='checklist'||
         (action==='undo'?commandEnabled('undo'):
         action==='redo'?commandEnabled('redo'):hasText);
       button.disabled=!enabled;
@@ -2306,6 +2308,9 @@ body { background:rgb(242,241,246); overflow:hidden }
     positionPaperIndex();
   };
   editToolbarButtons.forEach(button=>button.addEventListener('click',()=>runEditToolbarAction(button.dataset.editAction)));
+  document.addEventListener('pointerdown',event=>{
+    if(editToolbar.dataset.formatOpen==='true'&&!editToolbar.contains(event.target))setFormatToolbarOpen(false);
+  },true);
   headingOverlay.addEventListener('click',event=>{
     if(event.target===headingOverlay)setHeadingMenu(false);
   });
