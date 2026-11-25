@@ -459,18 +459,18 @@ body { background:rgb(242,241,246); overflow:hidden }
 .handwrite-actions { position:absolute; right:14px; top:calc(50% - 12px); display:flex; align-items:center; gap:13px; }
 .handwrite-actions button { width:24px; height:24px; flex:0 0 24px; }
 .edit-toolbar { position:absolute; left:0; right:0; bottom:0; z-index:28; height:92px; display:flex; flex-direction:column; background:#fff; border-top:1px solid #e7e7e7; box-shadow:0 -3px 10px rgba(35,36,42,.08); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(14px); transition:opacity 180ms ease,transform 220ms cubic-bezier(.22,.8,.25,1),visibility 0s 220ms; }
-.edit-toolbar { left:8px; right:8px; height:38px; display:block; background:transparent; box-shadow:none; transform:translateY(14px); overflow:visible; }
+.edit-toolbar { left:0; right:0; height:38px; display:block; background:transparent; border-top:0; box-shadow:none; transform:translateY(14px); overflow:visible; }
 .handwrite-screen[data-keyboard-open="true"] .edit-toolbar { opacity:1; visibility:visible; pointer-events:none; transform:translateY(0); transition:opacity 180ms ease,transform 260ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
 .edit-toolbar-row { display:flex; align-items:center; box-sizing:border-box; }
-.edit-toolbar-row.edit-toolbar-main { width:292px; height:36px; gap:16px; padding:3px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); }
-.edit-toolbar-row.edit-toolbar-format { position:absolute; left:0; bottom:47px; width:338px; height:38px; gap:16px; padding:4px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(5px); transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s 180ms; }
+.edit-toolbar-row.edit-toolbar-main { width:calc(100% - 51px); height:36px; gap:16px; padding:3px 16px; background:#fff; border-radius:0; box-shadow:none; }
+.edit-toolbar-row.edit-toolbar-format { position:absolute; left:0; bottom:47px; width:338px; height:38px; gap:16px; padding:4px 16px; background:#fff; border-radius:0; box-shadow:none; opacity:0; visibility:hidden; pointer-events:none; transform:translateY(5px); transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s 180ms; }
 .edit-toolbar[data-format-open="true"] .edit-toolbar-format { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
 .edit-toolbar-button { position:relative; flex:0 0 30px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:0; border-radius:4px; padding:4px; box-sizing:border-box; background:transparent; color:#404040; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-button:active { background:rgba(65,105,225,.08); }
-.edit-toolbar-main .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; box-shadow:inset 0 0 0 1px #afc7ee; }
+.edit-toolbar-main .edit-toolbar-button.is-active { color:#404040; background:#f1f4ff; box-shadow:none; }
 .edit-toolbar-main .edit-toolbar-button.is-disabled { color:#9a9a9a; background:transparent; box-shadow:none; }
 .edit-toolbar-button:disabled { color:#9a9a9a; cursor:default; pointer-events:none; }
-.edit-toolbar-format .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; box-shadow:inset 0 0 0 1px #afc7ee; }
+.edit-toolbar-format .edit-toolbar-button.is-active { color:#404040; background:#f1f4ff; box-shadow:none; }
 .edit-toolbar-button:focus-visible { outline:2px solid #4169e1; outline-offset:-2px; }
 .edit-toolbar-glyph { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; line-height:1; white-space:nowrap; }
 .edit-toolbar-glyph--t { font-size:28px; font-weight:500; font-family:Georgia,"Times New Roman",serif; }
@@ -487,7 +487,7 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-icon--line { fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .edit-toolbar-list-icon { display:block; width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
 .edit-toolbar-list-icon text { fill:currentColor; stroke:none; font:600 6px/1 Arial,sans-serif; }
-.edit-toolbar-fit { position:absolute; right:0; top:0; width:51px; height:36px; display:flex; align-items:center; justify-content:center; border:0; border-radius:20px; padding:4px; background:#fff; box-shadow:0 0 8px rgba(193,193,193,.3); cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
+.edit-toolbar-fit { position:absolute; right:0; top:0; width:51px; height:36px; display:flex; align-items:center; justify-content:center; border:0; border-radius:0; padding:4px; background:#fff; box-shadow:none; cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-fit:active { opacity:.68; }
 .edit-toolbar-fit:focus-visible { outline:2px solid #4169e1; outline-offset:2px; }
 .edit-toolbar-fit-icon { display:block; width:22px; height:22px; }
@@ -2237,16 +2237,17 @@ body { background:rgb(242,241,246); overflow:hidden }
   const syncEditToolbar=()=>{
     const level=getPaperCaretLevel();
     const hasText=String(paperEditor.innerText||paperEditor.textContent||'').replace(/\u00a0/g,' ').trim().length>0;
-    const commandState=(command)=>queryEditCommand('queryCommandState',command);
     const commandEnabled=(command)=>queryEditCommand('queryCommandEnabled',command);
+    const activeBlock=getPaperCaretBlock();
     editToolbarButtons.forEach(button=>{
       const action=button.dataset.editAction;
       const active=action==='format-text'?editToolbar.dataset.formatOpen==='true':
-        action==='text-style'?commandState('bold'):
-        action==='align-left'?(hasText&&(commandState('justifyLeft')||(!commandState('justifyCenter')&&!commandState('justifyRight')&&!commandState('justifyFull')))):
-        action==='checklist'?getPaperCaretBlock()?.dataset.paperChecklist==='true':
+        action==='text-style'?activeBlock?.dataset.paperBold==='true':
+        action==='align-left'?activeBlock?.dataset.paperAlign==='left':
+        action==='checklist'?activeBlock?.dataset.paperChecklist==='true':
         action===level;
-      const enabled=action==='format-text'||(action==='undo'?commandEnabled('undo'):
+      const enabled=action==='format-text'||action==='text-style'||action==='align-left'||action==='checklist'||
+        (action==='undo'?commandEnabled('undo'):
         action==='redo'?commandEnabled('redo'):hasText);
       button.disabled=!enabled;
       button.classList.toggle('is-disabled',!enabled);
@@ -2282,8 +2283,12 @@ body { background:rgb(242,241,246); overflow:hidden }
       }
     }else if(action==='text-style'){
       document.execCommand('bold');
+      const block=getPaperCaretBlock();
+      if(block&&block!==paperEditor)block.dataset.paperBold=String(block.dataset.paperBold!=='true');
     }else if(action==='align-left'){
       document.execCommand('justifyLeft');
+      const block=getPaperCaretBlock();
+      if(block&&block!==paperEditor)block.dataset.paperAlign='left';
     }else if(action==='checklist'){
       const block=getPaperCaretBlock();
       if(block&&block!==paperEditor){
