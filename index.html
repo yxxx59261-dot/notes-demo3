@@ -479,6 +479,7 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-main .edit-toolbar-button.is-disabled { color:#9a9a9a; background:transparent; box-shadow:none; }
 .edit-toolbar-button:disabled { color:#9a9a9a; cursor:default; pointer-events:none; }
 .edit-toolbar-format .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; border:1px solid #afc7ee; box-shadow:none; }
+.edit-toolbar-format .edit-toolbar-button.is-active[data-edit-action="dotted-list"] .edit-toolbar-provided-icon path { fill:#4169e1; }
 .edit-toolbar-popup .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; border:1px solid #afc7ee; box-shadow:none; }
 .edit-toolbar-popup .edit-toolbar-button.is-active .edit-toolbar-style-glyph { color:#4169e1; }
 .edit-toolbar-button:focus-visible { outline:2px solid #4169e1; outline-offset:-2px; }
@@ -2036,12 +2037,32 @@ body { background:rgb(242,241,246); overflow:hidden }
   const editFormatRow=editToolbar.querySelector('.edit-toolbar-format');
   const editStyleRow=editToolbar.querySelector('.edit-toolbar-style');
   const editAlignRow=editToolbar.querySelector('.edit-toolbar-align');
-  const formatIconVariants=new Map([...editFormatRow.querySelectorAll('.edit-toolbar-button--provided')].map(button=>{
-    const icon=button.querySelector('.edit-toolbar-provided-icon');
+  [
+    editToolbar.querySelector('[data-edit-action="dotted-list"] img'),
+    editToolbar.querySelector('[data-edit-action="text-style"] img'),
+    paperFitButton.querySelector('img')
+  ].forEach(icon=>{
+    const svg=new DOMParser().parseFromString(atob(icon.src.split(',')[1]),'image/svg+xml').documentElement;
+    svg.classList.add(...icon.classList);
+    svg.setAttribute('aria-hidden','true');
+    if(icon.closest('.edit-toolbar-fit')){
+      const glyph=svg.querySelector('g[clip-path]');
+      if(glyph)svg.append(glyph);
+    }
+    icon.replaceWith(svg);
+  });
+  const formatIconVariants=new Map([...editFormatRow.querySelectorAll('.edit-toolbar-button--provided img')].map(icon=>{
+    const button=icon.closest('button');
     const original=icon.src;
     const svg=atob(original.slice(original.indexOf(',')+1));
     const active='data:image/svg+xml;base64,'+btoa(svg.replace(/#(?:404040|000000)/gi,'#4169e1'));
     return [button,{icon,original,active}];
+  }));
+  const historyIconVariants=new Map([...editToolbar.querySelectorAll('[data-edit-action="undo"] img,[data-edit-action="redo"] img')].map(icon=>{
+    const disabled=icon.src;
+    const svg=atob(disabled.slice(disabled.indexOf(',')+1));
+    const enabled='data:image/svg+xml;base64,'+btoa(svg.replace(/#9a9a9a/gi,'#404040'));
+    return [icon.closest('button'),{icon,disabled,enabled}];
   }));
   let paperIndexPointerStart=null;
   let suppressPaperIndexClickUntil=0;
@@ -2339,6 +2360,11 @@ body { background:rgb(242,241,246); overflow:hidden }
       if(iconVariant){
         const source=active&&enabled?iconVariant.active:iconVariant.original;
         if(iconVariant.icon.src!==source)iconVariant.icon.src=source;
+      }
+      const historyIconVariant=historyIconVariants.get(button);
+      if(historyIconVariant){
+        const source=enabled?historyIconVariant.enabled:historyIconVariant.disabled;
+        if(historyIconVariant.icon.src!==source)historyIconVariant.icon.src=source;
       }
       if(['bold','italic','underline','strike'].includes(action))button.setAttribute('aria-pressed',String(Boolean(active)&&enabled));
     });
