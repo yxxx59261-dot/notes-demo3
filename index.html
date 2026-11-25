@@ -512,6 +512,12 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-fit:active { opacity:.68; }
 .edit-toolbar-fit:focus-visible { outline:2px solid #4169e1; outline-offset:2px; }
 .edit-toolbar-fit-icon { display:block; width:22px; height:22px; }
+/* Pixel-matched floating toolbar assets supplied from the design export. */
+.edit-toolbar { left:0; top:418px; right:auto; bottom:auto; width:375px; height:38px; }
+.edit-toolbar-main .edit-toolbar-button--provided { padding:0; }
+.edit-toolbar-main .edit-toolbar-provided-icon { display:block; width:30px; height:30px; flex:0 0 30px; object-fit:contain; }
+.edit-toolbar-fit { left:304px; top:-10px; right:auto; width:75px; height:60px; padding:0; border-radius:0; background:transparent; box-shadow:none; }
+.edit-toolbar-fit-provided-icon { display:block; width:75px; height:60px; pointer-events:none; user-select:none; }
 /* Keep the toolbar icons vector-like and transparent over the gray toolbar. */
 .handwrite-actions img { display:none; }
 .handwrite-ai { width:20px !important; height:20px !important; border-radius:6px; background:linear-gradient(135deg,#6d4cff 8%,#8d5bff 48%,#55b8ff 100%) !important; position:relative; }
@@ -2002,14 +2008,14 @@ body { background:rgb(242,241,246); overflow:hidden }
         <button type="button" class="edit-toolbar-button" data-edit-action="indent-decrease" aria-label="减少缩进"><svg class="edit-toolbar-icon edit-toolbar-icon--line" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 5h15M3 11h15M3 17h15M8 8l-4 3 4 3" /></svg></button>
       </div>
       <div class="edit-toolbar-row edit-toolbar-main">
-        <button type="button" class="edit-toolbar-button" data-edit-action="format-text" aria-label="文字格式"><svg class="edit-toolbar-icon edit-toolbar-icon--filled" aria-hidden="true"><use href="#edit-icon-t-main" /></svg></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="text-style" aria-label="文字样式"><span class="edit-toolbar-glyph edit-toolbar-glyph--aa">Aa</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="align-left" aria-label="左对齐"><svg class="edit-toolbar-icon edit-toolbar-icon--filled" aria-hidden="true"><use href="#edit-icon-align" /></svg></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="checklist" aria-label="待办事项"><svg class="edit-toolbar-icon edit-toolbar-icon--filled" aria-hidden="true"><use href="#edit-icon-check" /></svg></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="undo" aria-label="撤销"><svg class="edit-toolbar-icon edit-toolbar-icon--filled" aria-hidden="true"><use href="#edit-icon-undo" /></svg></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="redo" aria-label="重做"><svg class="edit-toolbar-icon edit-toolbar-icon--filled" aria-hidden="true"><use href="#edit-icon-undo" transform="translate(30 0) scale(-1 1)" /></svg></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="format-text" aria-label="文字格式"><img class="edit-toolbar-provided-icon" src="assets/edit-toolbar-t.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="text-style" aria-label="文字样式"><img class="edit-toolbar-provided-icon" src="assets/edit-toolbar-aa.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="align-left" aria-label="左对齐"><img class="edit-toolbar-provided-icon" src="assets/edit-toolbar-align.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="checklist" aria-label="待办事项"><img class="edit-toolbar-provided-icon" src="assets/edit-toolbar-check.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="undo" aria-label="撤销"><img class="edit-toolbar-provided-icon" src="assets/edit-toolbar-undo.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="redo" aria-label="重做"><img class="edit-toolbar-provided-icon" src="assets/edit-toolbar-redo.svg" alt="" aria-hidden="true"></button>
       </div>
-      <button type="button" class="edit-toolbar-fit" aria-label="纸张缩放至1.0倍" title="纸张缩放至1.0倍"><svg class="edit-toolbar-fit-icon edit-toolbar-icon--line" viewBox="0 0 22 22" aria-hidden="true"><path d="M5 2.5v17M17 2.5v17M8 11h6M8 11l2.5-2.5M8 11l2.5 2.5M14 11l-2.5-2.5M14 11l-2.5 2.5" /></svg></button>
+      <button type="button" class="edit-toolbar-fit" aria-label="纸张缩放至1.0倍" title="纸张缩放至1.0倍"><img class="edit-toolbar-fit-provided-icon" src="assets/edit-toolbar-fit.svg" alt="" aria-hidden="true"></button>
     </div>`;
   app.append(handwriteScreen);
   const paperViewport=handwriteScreen.querySelector('.paper-viewport');
