@@ -456,37 +456,37 @@ body { background:rgb(242,241,246); overflow:hidden }
 .handwrite-nav button,.handwrite-index { border:0; padding:0; background:transparent; appearance:none; cursor:pointer; color:#404040; }
 .handwrite-back { width:24px; height:24px; position:relative; display:flex; align-items:center; justify-content:center; }
 .handwrite-back img { display:block; width:24px; height:24px; opacity:.58; filter:grayscale(1); pointer-events:none; user-select:none; }
-.handwrite-actions { position:absolute; right:14px; top:calc(50% - 18px); display:flex; align-items:flex-end; gap:13px; }
+.handwrite-actions { position:absolute; right:14px; top:calc(50% - 12px); display:flex; align-items:center; gap:13px; }
 .handwrite-actions button { width:24px; height:24px; flex:0 0 24px; }
-.handwrite-actions .handwrite-fit { width:40px !important; height:30px !important; flex:0 0 40px !important; display:block !important; padding:0 !important; background:transparent !important; transform:translate(0.5px, 8.35px) !important; }
-.handwrite-fit::before { content:""; position:absolute; left:0; top:5px; width:40px; height:20px; border:.5px solid #a5a5a5; border-radius:10px; background:#fcfcfc; box-sizing:border-box; }
-.handwrite-fit::after { content:none; }
-.handwrite-fit-label { position:absolute; left:11px; top:8px; width:18px; height:14px; display:flex; align-items:center; justify-content:center; color:#3d3d3d; font:400 10px/14px "PingFang SC",sans-serif; white-space:nowrap; }
-.handwrite-fit.is-tapping::before { animation:handwrite-fit-ring-tap 520ms ease-out; }
-.handwrite-fit.is-tapping .handwrite-fit-label { animation:handwrite-fit-text-tap 520ms ease-out; }
-@keyframes handwrite-fit-ring-tap { 0%,100% { border-color:#a5a5a5 } 38% { border-color:#4169e1 } }
-@keyframes handwrite-fit-text-tap { 0%,100% { color:#3d3d3d } 38% { color:#4169e1 } }
-.handwrite-fit:focus-visible { outline:2px solid #4169e1; outline-offset:2px; border-radius:8px; }
-.handwrite-actions .handwrite-fit:active { opacity:.58; }
 .edit-toolbar { position:absolute; left:0; right:0; bottom:0; z-index:28; height:92px; display:flex; flex-direction:column; background:#fff; border-top:1px solid #e7e7e7; box-shadow:0 -3px 10px rgba(35,36,42,.08); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(14px); transition:opacity 180ms ease,transform 220ms cubic-bezier(.22,.8,.25,1),visibility 0s 220ms; }
-.handwrite-screen[data-keyboard-open="true"] .edit-toolbar { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); transition:opacity 180ms ease,transform 260ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
-.edit-toolbar-row { height:46px; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:0 10px; box-sizing:border-box; border-bottom:1px solid #f0f0f0; }
-.edit-toolbar-row:last-child { border-bottom:0; }
-.edit-toolbar-button { position:relative; flex:1 1 0; min-width:0; height:42px; display:flex; align-items:center; justify-content:center; border:0; border-radius:6px; padding:0; background:transparent; color:#303030; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.edit-toolbar { left:8px; right:8px; height:38px; display:block; background:transparent; box-shadow:none; transform:translateY(14px); overflow:visible; }
+.handwrite-screen[data-keyboard-open="true"] .edit-toolbar { opacity:1; visibility:visible; pointer-events:none; transform:translateY(0); transition:opacity 180ms ease,transform 260ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
+.edit-toolbar-row { display:flex; align-items:center; box-sizing:border-box; }
+.edit-toolbar-row.edit-toolbar-main { width:292px; height:36px; gap:16px; padding:3px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); }
+.edit-toolbar-row.edit-toolbar-format { position:absolute; left:0; bottom:47px; width:338px; height:38px; gap:16px; padding:4px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(5px); transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s 180ms; }
+.edit-toolbar[data-format-open="true"] .edit-toolbar-format { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
+.edit-toolbar-button { position:relative; flex:0 0 30px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:0; border-radius:4px; padding:4px; box-sizing:border-box; background:transparent; color:#404040; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-button:active { background:rgba(65,105,225,.08); }
-.edit-toolbar-button.is-active { color:#4169e1; background:#edf2ff; box-shadow:inset 0 0 0 1px #aebfec; }
+.edit-toolbar-main .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; box-shadow:none; }
+.edit-toolbar-format .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; box-shadow:inset 0 0 0 1px #afc7ee; }
 .edit-toolbar-button:focus-visible { outline:2px solid #4169e1; outline-offset:-2px; }
-.edit-toolbar-glyph { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; line-height:1; white-space:nowrap; }
-.edit-toolbar-glyph--t { font-size:29px; font-weight:500; font-family:Georgia,"Times New Roman",serif; }
-.edit-toolbar-glyph--heading { font-size:26px; font-weight:400; letter-spacing:-1px; }
-.edit-toolbar-glyph--list { font-size:25px; letter-spacing:-3px; }
-.edit-toolbar-glyph--ordered { font-size:20px; letter-spacing:-2px; }
-.edit-toolbar-glyph--dots { font-size:23px; letter-spacing:-3px; }
-.edit-toolbar-glyph--aa { font-size:24px; font-family:Georgia,"Times New Roman",serif; }
-.edit-toolbar-glyph--align { font-size:28px; letter-spacing:-5px; }
-.edit-toolbar-glyph--check { font-size:28px; }
-.edit-toolbar-glyph--undo,.edit-toolbar-glyph--redo { font-size:32px; font-family:Arial,sans-serif; }
-.edit-toolbar-glyph--keyboard { font-size:25px; letter-spacing:-2px; }
+.edit-toolbar-glyph { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; line-height:1; white-space:nowrap; }
+.edit-toolbar-glyph--t { font-size:28px; font-weight:500; font-family:Georgia,"Times New Roman",serif; }
+.edit-toolbar-glyph--heading { font-size:24px; font-weight:400; letter-spacing:-1px; }
+.edit-toolbar-glyph--list { font-size:23px; letter-spacing:-3px; }
+.edit-toolbar-glyph--ordered { font-size:18px; letter-spacing:-2px; }
+.edit-toolbar-glyph--dots { font-size:21px; letter-spacing:-3px; }
+.edit-toolbar-glyph--aa { font-size:23px; font-family:Georgia,"Times New Roman",serif; }
+.edit-toolbar-glyph--align { position:relative; font-size:0; }
+.edit-toolbar-glyph--align::before { content:""; position:absolute; left:2px; top:4px; width:18px; height:2px; border-radius:2px; background:currentColor; box-shadow:0 6px currentColor,0 12px currentColor; }
+.edit-toolbar-glyph--check { font-size:26px; }
+.edit-toolbar-glyph--undo,.edit-toolbar-glyph--redo { font-size:31px; font-family:Arial,sans-serif; }
+.edit-toolbar-fit { position:absolute; right:0; top:0; width:51px; height:36px; display:flex; align-items:center; justify-content:center; border:0; border-radius:20px; padding:4px; background:#fff; box-shadow:0 0 8px rgba(193,193,193,.3); cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
+.edit-toolbar-fit:active { opacity:.68; }
+.edit-toolbar-fit:focus-visible { outline:2px solid #4169e1; outline-offset:2px; }
+.edit-toolbar-fit-icon { position:relative; display:block; width:22px; height:22px; }
+.edit-toolbar-fit-icon::before { content:""; position:absolute; left:2px; top:1px; width:2px; height:20px; border-radius:2px; background:#111; box-shadow:16px 0 #111; }
+.edit-toolbar-fit-icon::after { content:"↔"; position:absolute; left:0; top:-3px; width:22px; height:22px; color:#111; font:700 22px/22px Arial,sans-serif; }
 /* Keep the toolbar icons vector-like and transparent over the gray toolbar. */
 .handwrite-actions img { display:none; }
 .handwrite-ai { width:20px !important; height:20px !important; border-radius:6px; background:linear-gradient(135deg,#6d4cff 8%,#8d5bff 48%,#55b8ff 100%) !important; position:relative; }
@@ -1929,7 +1929,6 @@ body { background:rgb(242,241,246); overflow:hidden }
     <header class="handwrite-nav">
       <button type="button" class="handwrite-back" aria-label="返回笔记列表"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0zMSAzNkwxOSAyNEwzMSAxMiIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==" alt="" draggable="false"></button>
       <div class="handwrite-actions">
-        <button type="button" class="handwrite-fit" aria-label="纸张缩放至1.0倍" title="纸张缩放至1.0倍"><span class="handwrite-fit-label" aria-hidden="true">1.0x</span></button>
         <button type="button" class="handwrite-ai" aria-label="AI助手"><img src="data:image/png;base64,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" alt="" draggable="false"></button>
         <button type="button" class="handwrite-share" aria-label="分享"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAABoklEQVR42u3cwY2FMAxFUUqjJDqiJEpilFmM0AhBcOzkGe7ircJH6HwDCSFM+75PxB4QAARwWtd1n+f5N8uy7ABWZtu2P7hjMiHK4WVDlMTLhCiLlwVRGi8DojyeOmIKPGXENHiqiKnwFBHT4akhDu/nWdqUEIfhlfHv1bal7ThGVkUchne3fWn7/6BBEXEYXi2gOuIwvCeAyojD8J4CqiIOw7MAKiIOw7MCqiGaf9iK1wKohBhWgXd4rYA1iDX7kLwG1uB5AF4h9sALuQvX4nkBniH2wnPvBz7B8wQ8IvbEcx+JeF5He0O8al4YQAABBBDAxIA1w6TaRAF6zauUtPxZYXAZAK0DgFPAqFm0LIB3x3oLWDML9nZASxUC2FiFQw/oE4ClMktpWxP5QNWaq7PNHdB6d1LuB171NgAEEEAAAQQQQAABBBBAAAEEEEAAAQRQLAACCCCAAAIIIIAAAggggAACCCCAAAIIIICSL1gqpusLll8LgJ0/aBa6yOZTgNGfq8sQy0xg+FKvLGle6nWsxKhFN6pwbosNzzDfHI8+5Q/JDQnAxCUvAgAAAABJRU5ErkJggg==" alt="" draggable="false"></button>
         <button type="button" class="handwrite-more" aria-label="更多"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAACz0lEQVR42u2dSXLEIAxF+2h9pL6Rj9RHcoqqUOWeQMOXGKQFqwQHP0sChPi5ned5yyZvUw3m+XyepR3H8dHqz0pLgP+wCpjH43He73dRK30r3BAAqzVJgVGAesNcHtpomNuB8wZpBm80OC+Q04IrL3xtqOeWMU4HsHxZzQtxZtLrUkcKFmmNQ6wOvfQoz5LARFijG7xqaR7rSw5M7ZjEHamD9AKnAVl+zxUgB94M20NLiCbwZgAnGbcEYgh4nJjNhQj947NlSqQuzTGCUPA4EwwVovqLaWaw0Q1hFOq4t5LlSdxZBbDnuivDo0LsubLZg1dqPUMRAWy57spxTwKxZSwi69v1hE3icWzr2yHuIa2QZX07uq4WYlofGmBk66NAbAJsuW8E65NYIdl9o9W8iACm+/LdON1XsBO78hAFznTj4xPgr/gX0X17RnVlwg6aCfDVK7sAI8Y/Shx8AYieQN6/HLeUAtH/GpJqISYyDtbxkEkjTu4oLyFNK1H6S+K5K0DK4VMLgrY/+sSNMjeQZxvEIU3vmdSKB6v+nGfCAXJK3DQfANGfE08T4CoAES48OgTAAVpMIq2vP3oSymXM6ssY1EL2W/0zp/+32hfJQpqywcitHGIrl8kEQDKhN9tEbJQUXyZUUQnVTOkrU/oZB+nLsZ+ncunG/BNK6CI2mvuySjsiAeQUGMC3Ujtb37etYAJUVqeZbOijWJ8IYNQS319rYbO00k6u20qDwYuud7zm0NqJ5UUbq4s2yPtkq8KjZLBDXzZE3AOExIgRmlWz3BnOC9ceF67zyr+z6MSMcdECnrnsyQwuTRUHcpM94UIcNcFw5PfchXck0k9eILm6hcOknzTiY2iYVc1tOfExrXrau5AsRwJPq5A5jfxdCjAOlp/zalbr02l0/CzBWS7up9LxWwmcG0BPmCPEHlMKflWALYXe3j8kmGnMIcvWkO0PMOKBTp56UZcAAAAASUVORK5CYII=" alt="" draggable="false"></button>
@@ -1949,9 +1948,9 @@ body { background:rgb(242,241,246); overflow:hidden }
       </div>
     </div>
     </div>
-    <div class="edit-toolbar" aria-label="编辑工具栏" aria-hidden="true">
-      <div class="edit-toolbar-row">
-        <button type="button" class="edit-toolbar-button is-active" data-edit-action="format-text" aria-label="文字格式"><span class="edit-toolbar-glyph edit-toolbar-glyph--t">T</span></button>
+    <div class="edit-toolbar" aria-label="编辑工具栏" aria-hidden="true" data-format-open="false">
+      <div class="edit-toolbar-row edit-toolbar-format" aria-hidden="true">
+        <button type="button" class="edit-toolbar-button" data-edit-action="body" aria-label="正文"><span class="edit-toolbar-glyph edit-toolbar-glyph--t">T</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="title" aria-label="标题1"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₁</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="subtitle" aria-label="标题2"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₂</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="section" aria-label="标题3"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₃</span></button>
@@ -1959,15 +1958,15 @@ body { background:rgb(242,241,246); overflow:hidden }
         <button type="button" class="edit-toolbar-button" data-edit-action="ordered-list" aria-label="编号列表"><span class="edit-toolbar-glyph edit-toolbar-glyph--ordered">¹≡</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="dotted-list" aria-label="虚线列表"><span class="edit-toolbar-glyph edit-toolbar-glyph--dots">⋯≡</span></button>
       </div>
-      <div class="edit-toolbar-row">
-        <button type="button" class="edit-toolbar-button" data-edit-action="body" aria-label="正文"><span class="edit-toolbar-glyph edit-toolbar-glyph--t">T</span></button>
+      <div class="edit-toolbar-row edit-toolbar-main">
+        <button type="button" class="edit-toolbar-button is-active" data-edit-action="format-text" aria-label="文字格式"><span class="edit-toolbar-glyph edit-toolbar-glyph--t">T</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="text-style" aria-label="文字样式"><span class="edit-toolbar-glyph edit-toolbar-glyph--aa">Aa</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="align-left" aria-label="左对齐"><span class="edit-toolbar-glyph edit-toolbar-glyph--align">≡</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="checklist" aria-label="待办事项"><span class="edit-toolbar-glyph edit-toolbar-glyph--check">☑</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="undo" aria-label="撤销"><span class="edit-toolbar-glyph edit-toolbar-glyph--undo">↶</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="redo" aria-label="重做"><span class="edit-toolbar-glyph edit-toolbar-glyph--redo">↷</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="dismiss-keyboard" aria-label="收起键盘"><span class="edit-toolbar-glyph edit-toolbar-glyph--keyboard">⌨↓</span></button>
       </div>
+      <button type="button" class="edit-toolbar-fit" aria-label="纸张缩放至1.0倍" title="纸张缩放至1.0倍"><span class="edit-toolbar-fit-icon" aria-hidden="true"></span></button>
     </div>`;
   app.append(handwriteScreen);
   const paperViewport=handwriteScreen.querySelector('.paper-viewport');
@@ -1975,12 +1974,13 @@ body { background:rgb(242,241,246); overflow:hidden }
   const paperCanvas=handwriteScreen.querySelector('.paper-canvas');
   const paperEditor=handwriteScreen.querySelector('.paper-editor');
   const paperIndex=paperCanvas.querySelector('.paper-index');
-  const paperFitButton=handwriteScreen.querySelector('.handwrite-fit');
+  const paperFitButton=handwriteScreen.querySelector('.edit-toolbar-fit');
   const headingOverlay=handwriteScreen.querySelector('.heading-level-overlay');
   const headingOptions=[...handwriteScreen.querySelectorAll('.heading-level-option')];
   const editToolbar=handwriteScreen.querySelector('.edit-toolbar');
   const editToolbarButtons=[...handwriteScreen.querySelectorAll('.edit-toolbar-button')];
   editToolbar.setAttribute('aria-hidden','true');
+  const editFormatRow=editToolbar.querySelector('.edit-toolbar-format');
   let paperIndexPointerStart=null;
   let suppressPaperIndexClickUntil=0;
   let headingMenuOpen=false;
@@ -2235,8 +2235,16 @@ body { background:rgb(242,241,246); overflow:hidden }
       button.classList.toggle('is-active',action===level);
     });
   };
+  const setFormatToolbarOpen=open=>{
+    editToolbar.dataset.formatOpen=String(open);
+    editFormatRow.setAttribute('aria-hidden',String(!open));
+  };
   const runEditToolbarAction=action=>{
     if(!paperEditing)return;
+    if(action==='format-text'){
+      setFormatToolbarOpen(editToolbar.dataset.formatOpen!=='true');
+      return;
+    }
     paperEditor.focus({preventScroll:true});
     ensurePaperCaretInsideBlock();
     if(action==='title'||action==='subtitle'||action==='section'||action==='body'){
@@ -2266,9 +2274,8 @@ body { background:rgb(242,241,246); overflow:hidden }
       document.execCommand('undo');
     }else if(action==='redo'){
       document.execCommand('redo');
-    }else if(action==='dismiss-keyboard'){
-      paperEditor.blur();
     }
+    setFormatToolbarOpen(false);
     syncEditToolbar();
     positionPaperIndex();
   };
@@ -2283,12 +2290,21 @@ body { background:rgb(242,241,246); overflow:hidden }
     positionPaperIndex();
   });
   let typingScrollLeft=null;
+  let typingScrollTop=null;
   const rememberTypingScrollPosition=()=>{
-    if(!Number.isFinite(typingScrollLeft))typingScrollLeft=paperViewport.scrollLeft;
+    if(Number.isFinite(typingScrollLeft))return;
+    typingScrollLeft=paperViewport.scrollLeft;
+    typingScrollTop=paperViewport.scrollTop;
+    cancelAnimationFrame(caretScrollFrame);
   };
   const restoreTypingScrollPosition=()=>{
     if(!Number.isFinite(typingScrollLeft))return;
     paperViewport.scrollLeft=typingScrollLeft;
+    paperViewport.scrollTop=typingScrollTop;
+  };
+  const clearTypingScrollPosition=()=>{
+    typingScrollLeft=null;
+    typingScrollTop=null;
   };
   paperEditor.addEventListener('compositionstart',()=>{
     paperComposing=true;
@@ -2302,8 +2318,8 @@ body { background:rgb(242,241,246); overflow:hidden }
       if(followNewNoteEnd)placeCaretAtNoteEnd();
       positionPaperIndex();
       restoreTypingScrollPosition();
-      keepPaperCaretVisible({horizontal:false});
-      typingScrollLeft=null;
+      keepPaperCaretVisible({horizontal:true});
+      clearTypingScrollPosition();
     });
   });
   paperEditor.addEventListener('click',positionPaperIndex);
@@ -2923,10 +2939,18 @@ body { background:rgb(242,241,246); overflow:hidden }
     if(!selection||!selection.rangeCount||!paperEditor.contains(selection.anchorNode))return;
     const caret=selection.getRangeAt(0).cloneRange();
     caret.collapse(true);
-    const rect=caret.getBoundingClientRect();
+    let rect=caret.getBoundingClientRect();
     const bounds=paperViewport.getBoundingClientRect();
     const inset=24;
     const topInset=parseFloat(getComputedStyle(paperViewport).paddingTop||'0')+inset;
+    if(rect.width===0&&rect.height===0){
+      const lastBlock=paperEditor.lastElementChild;
+      const block=lastBlock&&!lastBlock.textContent.trim()?lastBlock:getPaperCaretBlock();
+      if(block){
+        const blockRect=block.getBoundingClientRect();
+        rect={left:blockRect.left,right:blockRect.left,top:blockRect.top,bottom:blockRect.top+Math.min(blockRect.height,24)};
+      }
+    }
     let left=paperViewport.scrollLeft;
     let top=paperViewport.scrollTop;
     if(horizontal){
@@ -2943,6 +2967,16 @@ body { background:rgb(242,241,246); overflow:hidden }
       if(revealFirst>0&&rect.bottom+revealFirst<bounds.bottom-inset)top-=revealFirst;
     }
     scrollPaperToCaret(left,top);
+  };
+  let caretVisibilityFrame=0;
+  const schedulePaperCaretVisibility=()=>{
+    cancelAnimationFrame(caretVisibilityFrame);
+    caretVisibilityFrame=requestAnimationFrame(()=>{
+      caretVisibilityFrame=0;
+      restoreTypingScrollPosition();
+      keepPaperCaretVisible({horizontal:true});
+      clearTypingScrollPosition();
+    });
   };
   const caretRangeFromPoint=(clientX,clientY)=>{
     if(!Number.isFinite(clientX)||!Number.isFinite(clientY))return null;
@@ -3052,17 +3086,9 @@ body { background:rgb(242,241,246); overflow:hidden }
     }
   });
   paperEditor.addEventListener('input',()=>{
-    restoreTypingScrollPosition();
-    keepPaperCaretVisible({horizontal:false});
-    typingScrollLeft=null;
+    schedulePaperCaretVisibility();
   });
-  paperEditor.addEventListener('keyup',event=>{
-    if(event.key.length===1||event.key==='Enter'||event.key==='Backspace'||event.key==='Delete'){
-      restoreTypingScrollPosition();
-      keepPaperCaretVisible({horizontal:false});
-      typingScrollLeft=null;
-    }
-  });
+  paperEditor.addEventListener('keyup',positionPaperIndex);
   paperEditor.addEventListener('click',()=>{
     if(paperEditing&&Math.abs(paperZoom-1)<.01)keepPaperCaretVisible();
   });
@@ -3445,6 +3471,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     app.style.height=height+'px';app.style.transform='scale('+scale+')';
     handwriteScreen.dataset.keyboardOpen=String(keyboardOpen);
     editToolbar.setAttribute('aria-hidden',String(!keyboardOpen));
+    if(!keyboardOpen)setFormatToolbarOpen(false);
     paperViewport.style.height='';
     device.style.width=(375*scale)+'px';device.style.height=(height*scale)+'px';
     // Keep the editor within the visible part of the demo when its frame is cropped.
