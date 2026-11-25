@@ -3308,7 +3308,6 @@ body { background:rgb(242,241,246); overflow:hidden }
     cancelAnimationFrame(caretScrollFrame);
     cancelAnimationFrame(caretVisibilityFrame);
     setPaperPull(0,0);
-    if(needsZoom)setPaperZoom(1,event.clientX,event.clientY);
     paperEditor.focus({preventScroll:true});
     if(!placeCaretAtRange(clickedRange))placeCaretAtNoteEnd();
     const selection=window.getSelection();
@@ -3319,8 +3318,23 @@ body { background:rgb(242,241,246); overflow:hidden }
       y:(caretRect.top+caretRect.height/2-zoomedCanvasBounds.top)/(paperZoom*viewportScaleY)
     }:tapPoint;
     editCenterUntil=performance.now()+1600;
-    recenterPendingEdit();
-    positionPaperIndex();
+    const settleEditZoom=()=>{
+      setPaperZoom(1);
+      recenterPendingEdit();
+      positionPaperIndex();
+    };
+    if(needsZoom){
+      const overshootZoom=Math.min(1.035,1+(1-paperZoom)*.08);
+      animatePaperZoom(
+        paperZoom,
+        overshootZoom,
+        260,
+        ()=>animatePaperZoom(overshootZoom,1,170,settleEditZoom,{onFrame:recenterPendingEdit}),
+        {onFrame:recenterPendingEdit}
+      );
+    }else{
+      settleEditZoom();
+    }
   };
   paperCanvas.addEventListener('pointerdown',event=>{
     editCenterPoint=null;
