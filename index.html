@@ -468,6 +468,25 @@ body { background:rgb(242,241,246); overflow:hidden }
 @keyframes handwrite-fit-text-tap { 0%,100% { color:#3d3d3d } 38% { color:#4169e1 } }
 .handwrite-fit:focus-visible { outline:2px solid #4169e1; outline-offset:2px; border-radius:8px; }
 .handwrite-actions .handwrite-fit:active { opacity:.58; }
+.edit-toolbar { position:absolute; left:0; right:0; bottom:0; z-index:28; height:92px; display:flex; flex-direction:column; background:#fff; border-top:1px solid #e7e7e7; box-shadow:0 -3px 10px rgba(35,36,42,.08); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(14px); transition:opacity 180ms ease,transform 220ms cubic-bezier(.22,.8,.25,1),visibility 0s 220ms; }
+.handwrite-screen[data-keyboard-open="true"] .edit-toolbar { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); transition:opacity 180ms ease,transform 260ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
+.edit-toolbar-row { height:46px; display:flex; align-items:center; justify-content:space-around; gap:4px; padding:0 10px; box-sizing:border-box; border-bottom:1px solid #f0f0f0; }
+.edit-toolbar-row:last-child { border-bottom:0; }
+.edit-toolbar-button { position:relative; flex:1 1 0; min-width:0; height:42px; display:flex; align-items:center; justify-content:center; border:0; border-radius:6px; padding:0; background:transparent; color:#303030; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.edit-toolbar-button:active { background:rgba(65,105,225,.08); }
+.edit-toolbar-button.is-active { color:#4169e1; background:#edf2ff; box-shadow:inset 0 0 0 1px #aebfec; }
+.edit-toolbar-button:focus-visible { outline:2px solid #4169e1; outline-offset:-2px; }
+.edit-toolbar-glyph { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; line-height:1; white-space:nowrap; }
+.edit-toolbar-glyph--t { font-size:29px; font-weight:500; font-family:Georgia,"Times New Roman",serif; }
+.edit-toolbar-glyph--heading { font-size:26px; font-weight:400; letter-spacing:-1px; }
+.edit-toolbar-glyph--list { font-size:25px; letter-spacing:-3px; }
+.edit-toolbar-glyph--ordered { font-size:20px; letter-spacing:-2px; }
+.edit-toolbar-glyph--dots { font-size:23px; letter-spacing:-3px; }
+.edit-toolbar-glyph--aa { font-size:24px; font-family:Georgia,"Times New Roman",serif; }
+.edit-toolbar-glyph--align { font-size:28px; letter-spacing:-5px; }
+.edit-toolbar-glyph--check { font-size:28px; }
+.edit-toolbar-glyph--undo,.edit-toolbar-glyph--redo { font-size:32px; font-family:Arial,sans-serif; }
+.edit-toolbar-glyph--keyboard { font-size:25px; letter-spacing:-2px; }
 /* Keep the toolbar icons vector-like and transparent over the gray toolbar. */
 .handwrite-actions img { display:none; }
 .handwrite-ai { width:20px !important; height:20px !important; border-radius:6px; background:linear-gradient(135deg,#6d4cff 8%,#8d5bff 48%,#55b8ff 100%) !important; position:relative; }
@@ -1929,6 +1948,26 @@ body { background:rgb(242,241,246); overflow:hidden }
         <button type="button" class="heading-level-option" data-level="body" aria-checked="false"><span class="heading-level-preview">正文</span><span class="heading-level-check">✓</span></button>
       </div>
     </div>
+    </div>
+    <div class="edit-toolbar" aria-label="编辑工具栏" aria-hidden="true">
+      <div class="edit-toolbar-row">
+        <button type="button" class="edit-toolbar-button is-active" data-edit-action="format-text" aria-label="文字格式"><span class="edit-toolbar-glyph edit-toolbar-glyph--t">T</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="title" aria-label="标题1"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₁</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="subtitle" aria-label="标题2"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₂</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="section" aria-label="标题3"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₃</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="unordered-list" aria-label="项目符号列表"><span class="edit-toolbar-glyph edit-toolbar-glyph--list">•≡</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="ordered-list" aria-label="编号列表"><span class="edit-toolbar-glyph edit-toolbar-glyph--ordered">¹≡</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="dotted-list" aria-label="虚线列表"><span class="edit-toolbar-glyph edit-toolbar-glyph--dots">⋯≡</span></button>
+      </div>
+      <div class="edit-toolbar-row">
+        <button type="button" class="edit-toolbar-button" data-edit-action="body" aria-label="正文"><span class="edit-toolbar-glyph edit-toolbar-glyph--t">T</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="text-style" aria-label="文字样式"><span class="edit-toolbar-glyph edit-toolbar-glyph--aa">Aa</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="align-left" aria-label="左对齐"><span class="edit-toolbar-glyph edit-toolbar-glyph--align">≡</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="checklist" aria-label="待办事项"><span class="edit-toolbar-glyph edit-toolbar-glyph--check">☑</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="undo" aria-label="撤销"><span class="edit-toolbar-glyph edit-toolbar-glyph--undo">↶</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="redo" aria-label="重做"><span class="edit-toolbar-glyph edit-toolbar-glyph--redo">↷</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="dismiss-keyboard" aria-label="收起键盘"><span class="edit-toolbar-glyph edit-toolbar-glyph--keyboard">⌨↓</span></button>
+      </div>
     </div>`;
   app.append(handwriteScreen);
   const paperViewport=handwriteScreen.querySelector('.paper-viewport');
@@ -1939,6 +1978,9 @@ body { background:rgb(242,241,246); overflow:hidden }
   const paperFitButton=handwriteScreen.querySelector('.handwrite-fit');
   const headingOverlay=handwriteScreen.querySelector('.heading-level-overlay');
   const headingOptions=[...handwriteScreen.querySelectorAll('.heading-level-option')];
+  const editToolbar=handwriteScreen.querySelector('.edit-toolbar');
+  const editToolbarButtons=[...handwriteScreen.querySelectorAll('.edit-toolbar-button')];
+  editToolbar.setAttribute('aria-hidden','true');
   let paperIndexPointerStart=null;
   let suppressPaperIndexClickUntil=0;
   let headingMenuOpen=false;
@@ -2108,7 +2150,9 @@ body { background:rgb(242,241,246); overflow:hidden }
         : (block.getBoundingClientRect().top-canvasRect.top)/scale;
       lineCenter=blockTop+parseFloat(blockStyle.lineHeight)/2;
     }
-    const left=textLeft-indexWidth-9;
+    // Keep the heading marker inside the paper's text area instead of
+    // pushing it against the paper edge when the text-fit zoom is active.
+    const left=textLeft-indexWidth;
     const top=lineCenter-indexHeight/2;
     paperIndex.style.left=`${Math.max(0,left)}px`;
     paperIndex.style.top=`${Math.max(0,top)}px`;
@@ -2183,12 +2227,59 @@ body { background:rgb(242,241,246); overflow:hidden }
     setHeadingMenu(!headingMenuOpen);
   });
   headingOptions.forEach(option=>option.addEventListener('click',()=>setHeadingLevel(option.dataset.level)));
+  const syncEditToolbar=()=>{
+    const level=getPaperCaretLevel();
+    editToolbarButtons.forEach(button=>{
+      const action=button.dataset.editAction;
+      if(action==='format-text')return;
+      button.classList.toggle('is-active',action===level);
+    });
+  };
+  const runEditToolbarAction=action=>{
+    if(!paperEditing)return;
+    paperEditor.focus({preventScroll:true});
+    ensurePaperCaretInsideBlock();
+    if(action==='title'||action==='subtitle'||action==='section'||action==='body'){
+      setHeadingLevel(action);
+    }else if(action==='unordered-list'){
+      document.execCommand('insertUnorderedList');
+    }else if(action==='ordered-list'){
+      document.execCommand('insertOrderedList');
+    }else if(action==='dotted-list'){
+      const block=getPaperCaretBlock();
+      if(block&&block!==paperEditor){
+        if(block.dataset.paperList==='dotted')block.removeAttribute('data-paper-list');
+        else block.dataset.paperList='dotted';
+      }
+    }else if(action==='text-style'){
+      document.execCommand('bold');
+    }else if(action==='align-left'){
+      document.execCommand('justifyLeft');
+    }else if(action==='checklist'){
+      const block=getPaperCaretBlock();
+      if(block&&block!==paperEditor){
+        const enabled=block.dataset.paperChecklist!=='true';
+        block.dataset.paperChecklist=String(enabled);
+        if(enabled&&!block.textContent.trim())block.textContent='☐ ';
+      }
+    }else if(action==='undo'){
+      document.execCommand('undo');
+    }else if(action==='redo'){
+      document.execCommand('redo');
+    }else if(action==='dismiss-keyboard'){
+      paperEditor.blur();
+    }
+    syncEditToolbar();
+    positionPaperIndex();
+  };
+  editToolbarButtons.forEach(button=>button.addEventListener('click',()=>runEditToolbarAction(button.dataset.editAction)));
   headingOverlay.addEventListener('click',event=>{
     if(event.target===headingOverlay)setHeadingMenu(false);
   });
   paperViewport.addEventListener('scroll',positionHeadingMenu,{passive:true});
   paperEditor.addEventListener('focusin',()=>{
     ensurePaperCaretInsideBlock();
+    syncEditToolbar();
     positionPaperIndex();
   });
   paperEditor.addEventListener('compositionstart',()=>{paperComposing=true;});
@@ -2209,6 +2300,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     const selection=window.getSelection();
     if(selection?.rangeCount&&paperEditor.contains(selection.anchorNode)){
       lastPaperRange=selection.getRangeAt(0).cloneRange();
+      syncEditToolbar();
       positionPaperIndex();
     }
   });
@@ -2964,13 +3056,21 @@ body { background:rgb(242,241,246); overflow:hidden }
       noteList.scrollTop=0;
       cancelPaperZoomAnimation();
       const fitZoom=getPaperFitZoom();
-      // Existing notes open at 120% of the fit-to-screen size.
-      const defaultZoom=noteCard?Math.min(2.2,fitZoom*1.2):fitZoom;
+      // Existing notes open at the same text-fit scale as the 1.0 control.
+      const defaultZoom=noteCard?getPaperTextFitZoom():fitZoom;
       setPaperZoom(defaultZoom);
       paperViewport.scrollLeft=0;
       paperViewport.scrollTop=0;
       paperCanvas.classList.remove('is-pulled');
-      if(!noteCard){
+      if(noteCard){
+        requestAnimationFrame(()=>{
+          const width=paperViewport.clientWidth;
+          const sideGap=Math.min(20,width*.08);
+          paperViewport.scrollLeft=Math.max(0,paperStage.offsetLeft+paperBase.textMargin*paperZoom-sideGap);
+          paperViewport.scrollTop=0;
+          positionPaperIndex();
+        });
+      }else{
         // New notes open directly at the editing scale. Keeping the fit-to-page
         // zoom animation here made the first caret render in the overview
         // position until the user tapped the paper.
@@ -3313,6 +3413,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     }
     app.style.height=height+'px';app.style.transform='scale('+scale+')';
     handwriteScreen.dataset.keyboardOpen=String(keyboardOpen);
+    editToolbar.setAttribute('aria-hidden',String(!keyboardOpen));
     paperViewport.style.height='';
     device.style.width=(375*scale)+'px';device.style.height=(height*scale)+'px';
     // Keep the editor within the visible part of the demo when its frame is cropped.
