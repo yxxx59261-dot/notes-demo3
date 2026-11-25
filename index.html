@@ -497,6 +497,10 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-style-glyph--italic { font-style:italic; }
 .edit-toolbar-style-glyph--underline { text-decoration:underline; text-decoration-thickness:1.5px; text-underline-offset:3px; }
 .edit-toolbar-style-glyph--strike { text-decoration:line-through; text-decoration-thickness:1.5px; }
+.edit-toolbar-provided-icon { display:block; width:30px; height:30px; flex:0 0 30px; object-fit:contain; pointer-events:none; user-select:none; }
+.edit-toolbar-button--provided { padding:0; }
+.edit-toolbar-format .edit-toolbar-button:disabled .edit-toolbar-provided-icon,
+.edit-toolbar-format .edit-toolbar-button.is-disabled .edit-toolbar-provided-icon { opacity:.42; }
 .edit-toolbar-icon { display:block; width:22px; height:22px; overflow:visible; }
 .edit-toolbar-defs { position:absolute; width:0; height:0; overflow:hidden; }
 .edit-toolbar-icon--filled { width:22px; height:22px; flex:0 0 22px; fill:currentColor; }
@@ -1980,12 +1984,12 @@ body { background:rgb(242,241,246); overflow:hidden }
     <div class="edit-toolbar" aria-label="编辑工具栏" aria-hidden="true" data-format-open="false" data-style-open="false" data-align-open="false">
       <div class="edit-toolbar-row edit-toolbar-format" aria-hidden="true">
         <button type="button" class="edit-toolbar-button" data-edit-action="body" aria-label="正文"><svg class="edit-toolbar-icon edit-toolbar-icon--filled" aria-hidden="true"><use href="#edit-icon-t-independent" /></svg></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="title" aria-label="标题1"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₁</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="subtitle" aria-label="标题2"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₂</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="section" aria-label="标题3"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₃</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="unordered-list" aria-label="项目符号列表"><svg class="edit-toolbar-list-icon" viewBox="0 0 22 22" aria-hidden="true"><circle cx="3.5" cy="5" r="1" fill="currentColor" stroke="none" /><circle cx="3.5" cy="11" r="1" fill="currentColor" stroke="none" /><circle cx="3.5" cy="17" r="1" fill="currentColor" stroke="none" /><path d="M8 5h11M8 11h11M8 17h11" /></svg></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="ordered-list" aria-label="编号列表"><svg class="edit-toolbar-list-icon" viewBox="0 0 22 22" aria-hidden="true"><text x="1" y="6.5">1</text><text x="1" y="12.5">2</text><text x="1" y="18.5">3</text><path d="M8 5h11M8 11h11M8 17h11" /></svg></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="dotted-list" aria-label="虚线列表"><svg class="edit-toolbar-list-icon" viewBox="0 0 22 22" aria-hidden="true"><circle cx="3.5" cy="5" r="1" fill="currentColor" stroke="none" /><circle cx="3.5" cy="17" r="1" fill="currentColor" stroke="none" /><path d="M8 5h11M8 11h11M8 17h11" stroke-dasharray="1.5 2.5" /></svg></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="title" aria-label="标题1"><img class="edit-toolbar-provided-icon" src="assets/edit-format-title.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="subtitle" aria-label="标题2"><img class="edit-toolbar-provided-icon" src="assets/edit-format-subtitle.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="section" aria-label="标题3"><img class="edit-toolbar-provided-icon" src="assets/edit-format-section.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="unordered-list" aria-label="项目符号列表"><img class="edit-toolbar-provided-icon" src="assets/edit-format-unordered-list.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="ordered-list" aria-label="编号列表"><img class="edit-toolbar-provided-icon" src="assets/edit-format-ordered-list.svg" alt="" aria-hidden="true"></button>
+        <button type="button" class="edit-toolbar-button edit-toolbar-button--provided" data-edit-action="dotted-list" aria-label="虚线列表"><img class="edit-toolbar-provided-icon" src="assets/edit-format-dotted-list.svg" alt="" aria-hidden="true"></button>
       </div>
       <div class="edit-toolbar-row edit-toolbar-popup edit-toolbar-style" aria-hidden="true">
         <button type="button" class="edit-toolbar-button" data-edit-action="bold" aria-label="加粗"><span class="edit-toolbar-style-glyph edit-toolbar-style-glyph--bold">B</span></button>
@@ -2271,6 +2275,26 @@ body { background:rgb(242,241,246); overflow:hidden }
   const queryEditCommand=(method,command)=>{
     try{return document[method]?.(command)===true}catch{return false}
   };
+  const inlineStyleCommands={
+    bold:{command:'bold',key:'paperBold'},
+    italic:{command:'italic',key:'paperItalic'},
+    underline:{command:'underline',key:'paperUnderline'},
+    strike:{command:'strikeThrough',key:'paperStrike'}
+  };
+  const getInlineStyleActive=(block,action)=>{
+    const style=inlineStyleCommands[action];
+    if(!style)return false;
+    if(block?.dataset?.[style.key]!=null)return block.dataset[style.key]==='true';
+    return queryEditCommand('queryCommandState',style.command) ||
+      (action==='bold'&&getPaperCaretLevel()!=='body');
+  };
+  const setInlineStyleState=(blocks,action,active)=>{
+    const style=inlineStyleCommands[action];
+    if(!style)return;
+    blocks.filter(block=>block&&block!==paperEditor).forEach(block=>{
+      block.dataset[style.key]=String(active);
+    });
+  };
   const syncEditToolbar=()=>{
     const level=getPaperCaretLevel();
     const hasText=String(paperEditor.innerText||paperEditor.textContent||'').replace(/\u00a0/g,' ').trim().length>0;
@@ -2283,10 +2307,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       const active=action==='format-text'?editToolbar.dataset.formatOpen==='true':
         action==='text-style'?editToolbar.dataset.styleOpen==='true':
         action==='align-left'?editToolbar.dataset.alignOpen==='true':
-        action==='bold'?(activeBlock?.dataset.paperBold!=null?activeBlock.dataset.paperBold==='true':(commandState('bold')||level!=='body')):
-        action==='italic'?(activeBlock?.dataset.paperItalic!=null?activeBlock.dataset.paperItalic==='true':commandState('italic')):
-        action==='underline'?(activeBlock?.dataset.paperUnderline!=null?activeBlock.dataset.paperUnderline==='true':commandState('underline')):
-        action==='strike'?(activeBlock?.dataset.paperStrike!=null?activeBlock.dataset.paperStrike==='true':commandState('strikeThrough')):
+        inlineStyleCommands[action]?getInlineStyleActive(activeBlock,action):
         action==='checklist'?activeBlock?.dataset.paperChecklist==='true':
         action===level;
       const enabled=action==='format-text'||formatAction||action==='text-style'||action==='align-left'||
@@ -2380,12 +2401,16 @@ body { background:rgb(242,241,246); overflow:hidden }
         if(block.dataset.paperList==='dotted')block.removeAttribute('data-paper-list');
         else block.dataset.paperList='dotted';
       }
-    }else if(['bold','italic','underline','strike'].includes(action)){
-      const command={bold:'bold',italic:'italic',underline:'underline',strike:'strikeThrough'}[action];
-      document.execCommand(command);
+    }else if(inlineStyleCommands[action]){
+      const style=inlineStyleCommands[action];
       const block=getPaperCaretBlock();
-      const key={bold:'paperBold',italic:'paperItalic',underline:'paperUnderline',strike:'paperStrike'}[action];
-      if(block&&block!==paperEditor)block.dataset[key]=String(commandState(command));
+      const selectedBlocks=getPaperSelectionBlocks();
+      const current=getInlineStyleActive(block,action);
+      const next=!current;
+      // Toggle only the clicked mark. The browser keeps the caret's typing
+      // state, while the block dataset keeps the four marks independent.
+      document.execCommand(style.command);
+      setInlineStyleState(selectedBlocks.length?selectedBlocks:[block],action,next);
     }else if(action==='indent-increase'||action==='indent-decrease'){
       const block=getPaperCaretBlock();
       if(block&&block!==paperEditor){
