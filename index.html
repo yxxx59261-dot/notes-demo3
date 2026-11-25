@@ -467,7 +467,9 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar[data-format-open="true"] .edit-toolbar-format { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
 .edit-toolbar-button { position:relative; flex:0 0 30px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:0; border-radius:4px; padding:4px; box-sizing:border-box; background:transparent; color:#404040; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-button:active { background:rgba(65,105,225,.08); }
-.edit-toolbar-main .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; box-shadow:none; }
+.edit-toolbar-main .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; box-shadow:inset 0 0 0 1px #afc7ee; }
+.edit-toolbar-main .edit-toolbar-button.is-disabled { color:#9a9a9a; background:transparent; box-shadow:none; }
+.edit-toolbar-button:disabled { color:#9a9a9a; cursor:default; pointer-events:none; }
 .edit-toolbar-format .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; box-shadow:inset 0 0 0 1px #afc7ee; }
 .edit-toolbar-button:focus-visible { outline:2px solid #4169e1; outline-offset:-2px; }
 .edit-toolbar-glyph { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; line-height:1; white-space:nowrap; }
@@ -480,13 +482,15 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-glyph--align { position:relative; font-size:0; }
 .edit-toolbar-glyph--align::before { content:""; position:absolute; left:2px; top:4px; width:18px; height:2px; border-radius:2px; background:currentColor; box-shadow:0 6px currentColor,0 12px currentColor; }
 .edit-toolbar-glyph--check { font-size:26px; }
-.edit-toolbar-glyph--undo,.edit-toolbar-glyph--redo { font-size:31px; font-family:Arial,sans-serif; }
+.edit-toolbar-icon { display:block; width:22px; height:22px; overflow:visible; }
+.edit-toolbar-icon path,.edit-toolbar-icon rect { vector-effect:non-scaling-stroke; }
+.edit-toolbar-icon--line { fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.edit-toolbar-list-icon { display:block; width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.edit-toolbar-list-icon text { fill:currentColor; stroke:none; font:600 6px/1 Arial,sans-serif; }
 .edit-toolbar-fit { position:absolute; right:0; top:0; width:51px; height:36px; display:flex; align-items:center; justify-content:center; border:0; border-radius:20px; padding:4px; background:#fff; box-shadow:0 0 8px rgba(193,193,193,.3); cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-fit:active { opacity:.68; }
 .edit-toolbar-fit:focus-visible { outline:2px solid #4169e1; outline-offset:2px; }
-.edit-toolbar-fit-icon { position:relative; display:block; width:22px; height:22px; }
-.edit-toolbar-fit-icon::before { content:""; position:absolute; left:2px; top:1px; width:2px; height:20px; border-radius:2px; background:#111; box-shadow:16px 0 #111; }
-.edit-toolbar-fit-icon::after { content:"↔"; position:absolute; left:0; top:-3px; width:22px; height:22px; color:#111; font:700 22px/22px Arial,sans-serif; }
+.edit-toolbar-fit-icon { display:block; width:22px; height:22px; }
 /* Keep the toolbar icons vector-like and transparent over the gray toolbar. */
 .handwrite-actions img { display:none; }
 .handwrite-ai { width:20px !important; height:20px !important; border-radius:6px; background:linear-gradient(135deg,#6d4cff 8%,#8d5bff 48%,#55b8ff 100%) !important; position:relative; }
@@ -1954,19 +1958,19 @@ body { background:rgb(242,241,246); overflow:hidden }
         <button type="button" class="edit-toolbar-button" data-edit-action="title" aria-label="标题1"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₁</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="subtitle" aria-label="标题2"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₂</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="section" aria-label="标题3"><span class="edit-toolbar-glyph edit-toolbar-glyph--heading">H₃</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="unordered-list" aria-label="项目符号列表"><span class="edit-toolbar-glyph edit-toolbar-glyph--list">•≡</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="ordered-list" aria-label="编号列表"><span class="edit-toolbar-glyph edit-toolbar-glyph--ordered">¹≡</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="dotted-list" aria-label="虚线列表"><span class="edit-toolbar-glyph edit-toolbar-glyph--dots">⋯≡</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="unordered-list" aria-label="项目符号列表"><svg class="edit-toolbar-list-icon" viewBox="0 0 22 22" aria-hidden="true"><circle cx="3.5" cy="5" r="1" fill="currentColor" stroke="none" /><circle cx="3.5" cy="11" r="1" fill="currentColor" stroke="none" /><circle cx="3.5" cy="17" r="1" fill="currentColor" stroke="none" /><path d="M8 5h11M8 11h11M8 17h11" /></svg></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="ordered-list" aria-label="编号列表"><svg class="edit-toolbar-list-icon" viewBox="0 0 22 22" aria-hidden="true"><text x="1" y="6.5">1</text><text x="1" y="12.5">2</text><text x="1" y="18.5">3</text><path d="M8 5h11M8 11h11M8 17h11" /></svg></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="dotted-list" aria-label="虚线列表"><svg class="edit-toolbar-list-icon" viewBox="0 0 22 22" aria-hidden="true"><circle cx="3.5" cy="5" r="1" fill="currentColor" stroke="none" /><circle cx="3.5" cy="17" r="1" fill="currentColor" stroke="none" /><path d="M8 5h11M8 11h11M8 17h11" stroke-dasharray="1.5 2.5" /></svg></button>
       </div>
       <div class="edit-toolbar-row edit-toolbar-main">
-        <button type="button" class="edit-toolbar-button is-active" data-edit-action="format-text" aria-label="文字格式"><span class="edit-toolbar-glyph edit-toolbar-glyph--t">T</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="format-text" aria-label="文字格式"><span class="edit-toolbar-glyph edit-toolbar-glyph--t">T</span></button>
         <button type="button" class="edit-toolbar-button" data-edit-action="text-style" aria-label="文字样式"><span class="edit-toolbar-glyph edit-toolbar-glyph--aa">Aa</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="align-left" aria-label="左对齐"><span class="edit-toolbar-glyph edit-toolbar-glyph--align">≡</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="checklist" aria-label="待办事项"><span class="edit-toolbar-glyph edit-toolbar-glyph--check">☑</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="undo" aria-label="撤销"><span class="edit-toolbar-glyph edit-toolbar-glyph--undo">↶</span></button>
-        <button type="button" class="edit-toolbar-button" data-edit-action="redo" aria-label="重做"><span class="edit-toolbar-glyph edit-toolbar-glyph--redo">↷</span></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="align-left" aria-label="左对齐"><svg class="edit-toolbar-icon edit-toolbar-icon--line" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 5h16M3 11h13M3 17h16" /></svg></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="checklist" aria-label="待办事项"><svg class="edit-toolbar-icon edit-toolbar-icon--line" viewBox="0 0 22 22" aria-hidden="true"><rect x="3.5" y="3.5" width="15" height="15" rx="2" /><path d="m7 11 2.8 3L15.5 8" /></svg></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="undo" aria-label="撤销"><svg class="edit-toolbar-icon edit-toolbar-icon--line" viewBox="0 0 22 22" aria-hidden="true"><path d="M8.5 6H4l4-3M4 6c8-3.5 14 0 14 6.5 0 4.1-3 6.5-7.3 6.5H8" /></svg></button>
+        <button type="button" class="edit-toolbar-button" data-edit-action="redo" aria-label="重做"><svg class="edit-toolbar-icon edit-toolbar-icon--line" viewBox="0 0 22 22" aria-hidden="true"><path d="M13.5 6H18l-4-3M18 6c-8-3.5-14 0-14 6.5 0 4.1 3 6.5 7.3 6.5H14" /></svg></button>
       </div>
-      <button type="button" class="edit-toolbar-fit" aria-label="纸张缩放至1.0倍" title="纸张缩放至1.0倍"><span class="edit-toolbar-fit-icon" aria-hidden="true"></span></button>
+      <button type="button" class="edit-toolbar-fit" aria-label="纸张缩放至1.0倍" title="纸张缩放至1.0倍"><svg class="edit-toolbar-fit-icon edit-toolbar-icon--line" viewBox="0 0 22 22" aria-hidden="true"><path d="M5 2.5v17M17 2.5v17M8 11h6M8 11l2.5-2.5M8 11l2.5 2.5M14 11l-2.5-2.5M14 11l-2.5 2.5" /></svg></button>
     </div>`;
   app.append(handwriteScreen);
   const paperViewport=handwriteScreen.querySelector('.paper-viewport');
@@ -2227,17 +2231,34 @@ body { background:rgb(242,241,246); overflow:hidden }
     setHeadingMenu(!headingMenuOpen);
   });
   headingOptions.forEach(option=>option.addEventListener('click',()=>setHeadingLevel(option.dataset.level)));
+  const queryEditCommand=(method,command)=>{
+    try{return document[method]?.(command)===true}catch{return false}
+  };
   const syncEditToolbar=()=>{
     const level=getPaperCaretLevel();
+    const hasText=String(paperEditor.innerText||paperEditor.textContent||'').replace(/\u00a0/g,' ').trim().length>0;
+    const commandState=(command)=>queryEditCommand('queryCommandState',command);
+    const commandEnabled=(command)=>queryEditCommand('queryCommandEnabled',command);
     editToolbarButtons.forEach(button=>{
       const action=button.dataset.editAction;
-      if(action==='format-text')return;
-      button.classList.toggle('is-active',action===level);
+      const active=action==='format-text'?editToolbar.dataset.formatOpen==='true':
+        action==='text-style'?commandState('bold'):
+        action==='align-left'?(hasText&&(commandState('justifyLeft')||(!commandState('justifyCenter')&&!commandState('justifyRight')&&!commandState('justifyFull')))):
+        action==='checklist'?getPaperCaretBlock()?.dataset.paperChecklist==='true':
+        action===level;
+      const enabled=action==='format-text'||(action==='undo'?commandEnabled('undo'):
+        action==='redo'?commandEnabled('redo'):hasText);
+      button.disabled=!enabled;
+      button.classList.toggle('is-disabled',!enabled);
+      button.setAttribute('aria-disabled',String(!enabled));
+      button.classList.toggle('is-active',Boolean(active)&&enabled);
     });
   };
   const setFormatToolbarOpen=open=>{
     editToolbar.dataset.formatOpen=String(open);
     editFormatRow.setAttribute('aria-hidden',String(!open));
+    const formatTrigger=editToolbar.querySelector('[data-edit-action="format-text"]');
+    formatTrigger?.classList.toggle('is-active',open);
   };
   const runEditToolbarAction=action=>{
     if(!paperEditing)return;
@@ -2320,6 +2341,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       restoreTypingScrollPosition();
       keepPaperCaretVisible({horizontal:true});
       clearTypingScrollPosition();
+      syncEditToolbar();
     });
   });
   paperEditor.addEventListener('click',positionPaperIndex);
@@ -2942,6 +2964,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     let rect=caret.getBoundingClientRect();
     const bounds=paperViewport.getBoundingClientRect();
     const inset=24;
+    const horizontalInset=48;
     const scaleX=bounds.width/(paperViewport.clientWidth||1)||1;
     const scaleY=bounds.height/(paperViewport.clientHeight||1)||1;
     const topInset=parseFloat(getComputedStyle(paperViewport).paddingTop||'0')*scaleY+inset;
@@ -2956,8 +2979,8 @@ body { background:rgb(242,241,246); overflow:hidden }
     let left=paperViewport.scrollLeft;
     let top=paperViewport.scrollTop;
     if(horizontal){
-      if(rect.right>bounds.right-inset)left+=(rect.right-(bounds.right-inset))/scaleX;
-      if(rect.left<bounds.left+inset)left-=(bounds.left+inset-rect.left)/scaleX;
+      if(rect.right>bounds.right-horizontalInset)left+=(rect.right-(bounds.right-horizontalInset))/scaleX;
+      if(rect.left<bounds.left+horizontalInset)left-=(bounds.left+horizontalInset-rect.left)/scaleX;
     }
     if(rect.bottom>bounds.bottom-inset)top+=(rect.bottom-(bounds.bottom-inset))/scaleY;
     if(rect.top<bounds.top+topInset)top-=(bounds.top+topInset-rect.top)/scaleY;
@@ -3074,6 +3097,7 @@ body { background:rgb(242,241,246); overflow:hidden }
   paperEditor.addEventListener('input',event=>{
     restoreTypingScrollPosition();
     editCenterPoint=null;
+    syncEditToolbar();
     const text=readDraft();
     if(text.trim()){
       updateDraftCard(text);
@@ -3110,6 +3134,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       paperEditing=!noteCard;
       if(noteCard)syncHeadingOptions(getPaperCaretLevel());
       else setHeadingLevel('title',{focus:false});
+      syncEditToolbar();
       setHeadingMenu(false);
       setFilter(false);setSort(false);setOpen(false);
       noteList.scrollTop=0;
