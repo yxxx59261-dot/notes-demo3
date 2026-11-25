@@ -462,14 +462,16 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar { left:0; right:0; height:38px; display:block; background:transparent; border-top:0; border-radius:0; box-shadow:none; transform:translateY(14px); overflow:visible; }
 .handwrite-screen[data-keyboard-open="true"] .edit-toolbar { opacity:1; visibility:visible; pointer-events:none; transform:translateY(0); transition:opacity 180ms ease,transform 260ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
 .edit-toolbar-row { display:flex; align-items:center; box-sizing:border-box; }
-.edit-toolbar-row.edit-toolbar-main { position:absolute; left:8px; top:0; width:292px; height:36px; gap:16px; padding:3px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); pointer-events:auto; }
+.edit-toolbar-row.edit-toolbar-main { position:absolute; left:8px; top:0; width:292px; height:38px; gap:16px; padding:4px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); pointer-events:auto; }
 .edit-toolbar-row.edit-toolbar-format { position:absolute; left:8px; bottom:47px; z-index:2; width:338px; height:36px; gap:16px; padding:3px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(5px) scale(.98); transform-origin:left bottom; transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s 180ms; }
 .edit-toolbar[data-format-open="true"] .edit-toolbar-format { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0) scale(1); transition:opacity 160ms ease,transform 220ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
-.edit-toolbar-row.edit-toolbar-popup { position:absolute; left:50%; bottom:47px; z-index:3; height:38px; gap:16px; padding:4px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); opacity:0; visibility:hidden; pointer-events:none; transform:translate(-50%,5px) scale(.98); transform-origin:center bottom; transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s 180ms; }
+.edit-toolbar-row.edit-toolbar-popup { position:absolute; bottom:47px; z-index:3; height:38px; gap:16px; padding:4px 16px; background:#fff; border-radius:20px; box-shadow:0 0 15px rgba(202,202,202,.3); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(5px) scale(.98); transform-origin:left bottom; transition:opacity 160ms ease,transform 180ms cubic-bezier(.22,.8,.25,1),visibility 0s 180ms; }
 .edit-toolbar-style { width:200px; }
 .edit-toolbar-align { width:108px; }
 .edit-toolbar[data-style-open="true"] .edit-toolbar-style,
-.edit-toolbar[data-align-open="true"] .edit-toolbar-align { opacity:1; visibility:visible; pointer-events:auto; transform:translate(-50%,0) scale(1); transition:opacity 160ms ease,transform 220ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
+.edit-toolbar[data-align-open="true"] .edit-toolbar-align { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0) scale(1); transition:opacity 160ms ease,transform 220ms cubic-bezier(.22,.8,.25,1),visibility 0s; }
+.edit-toolbar-style { left:55px; }
+.edit-toolbar-align { left:105px; }
 .edit-toolbar-button { position:relative; flex:0 0 30px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:0; border-radius:4px; padding:4px; box-sizing:border-box; background:transparent; color:#404040; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-button:active { background:rgba(65,105,225,.08); }
 .edit-toolbar-main .edit-toolbar-button.is-active { color:#404040; background:#f1f4ff; box-shadow:none; }
@@ -478,8 +480,9 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-button:disabled { color:#9a9a9a; cursor:default; pointer-events:none; }
 .edit-toolbar-format .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; border:1px solid #afc7ee; box-shadow:none; }
 .edit-toolbar-popup .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; border:1px solid #afc7ee; box-shadow:none; }
+.edit-toolbar-popup .edit-toolbar-button.is-active .edit-toolbar-style-glyph { color:#4169e1; }
 .edit-toolbar-button:focus-visible { outline:2px solid #4169e1; outline-offset:-2px; }
-.edit-toolbar-glyph { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; line-height:1; white-space:nowrap; }
+.edit-toolbar-glyph { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; line-height:22px; text-align:center; white-space:nowrap; }
 .edit-toolbar-glyph--t { font-size:28px; font-weight:500; font-family:Georgia,"Times New Roman",serif; }
 .edit-toolbar-glyph--heading { font-size:24px; font-weight:400; letter-spacing:-1px; }
 .edit-toolbar-glyph--list { font-size:23px; letter-spacing:-3px; }
@@ -496,13 +499,12 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-style-glyph--strike { text-decoration:line-through; text-decoration-thickness:1.5px; }
 .edit-toolbar-icon { display:block; width:22px; height:22px; overflow:visible; }
 .edit-toolbar-defs { position:absolute; width:0; height:0; overflow:hidden; }
-.edit-toolbar-icon--filled { width:30px; height:30px; flex:0 0 30px; fill:currentColor; }
-.edit-toolbar-button:has(.edit-toolbar-icon--filled) { padding:0; }
+.edit-toolbar-icon--filled { width:22px; height:22px; flex:0 0 22px; fill:currentColor; }
 .edit-toolbar-icon path,.edit-toolbar-icon rect { vector-effect:non-scaling-stroke; }
 .edit-toolbar-icon--line { fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .edit-toolbar-list-icon { display:block; width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
 .edit-toolbar-list-icon text { fill:currentColor; stroke:none; font:600 6px/1 Arial,sans-serif; }
-.edit-toolbar-fit { position:absolute; right:0; top:0; width:51px; height:36px; display:flex; align-items:center; justify-content:center; border:0; border-radius:0 20px 0 0; padding:4px; background:transparent; box-shadow:none; cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
+.edit-toolbar-fit { position:absolute; right:0; top:2px; width:51px; height:36px; display:flex; align-items:center; justify-content:center; border:0; border-radius:0 20px 0 0; padding:4px; background:transparent; box-shadow:none; cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-fit:active { opacity:.68; }
 .edit-toolbar-fit:focus-visible { outline:2px solid #4169e1; outline-offset:2px; }
 .edit-toolbar-fit-icon { display:block; width:22px; height:22px; }
@@ -1970,6 +1972,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     <svg class="edit-toolbar-defs" aria-hidden="true" focusable="false"><defs>
       <symbol id="edit-icon-t-main" viewBox="0 0 30 30"><path d="M7.4375 8.19375C7.4375 7.99318 7.51718 7.80082 7.659 7.659C7.80082 7.51718 7.99318 7.4375 8.19375 7.4375H21.80625C22.00682 7.4375 22.19918 7.51718 22.341 7.659C22.48282 7.80082 22.5625 7.99318 22.5625 8.19375V11.21875C22.5625 11.41932 22.48282 11.61167 22.341 11.7535C22.19918 11.89532 22.00682 11.975 21.80625 11.975C21.60568 11.975 21.41332 11.89532 21.2715 11.7535C21.12968 11.61167 21.05 11.41932 21.05 11.21875V8.95H15.75625V21.05H18.025C18.22557 21.05 18.41793 21.12968 18.55975 21.2715C18.70158 21.41332 18.78125 21.60568 18.78125 21.80625C18.78125 22.00682 18.70158 22.19918 18.55975 22.341C18.41793 22.48282 18.22557 22.5625 18.025 22.5625H11.975C11.77443 22.5625 11.58207 22.48282 11.44025 22.341C11.29843 22.19918 11.21875 22.00682 11.21875 21.80625C11.21875 21.60568 11.29843 21.41332 11.44025 21.2715C11.58207 21.12968 11.77443 21.05 11.975 21.05H14.24375V8.95H8.95V11.21875C8.95 11.41932 8.87032 11.61167 8.7285 11.7535C8.58668 11.89532 8.39432 11.975 8.19375 11.975C7.99318 11.975 7.80082 11.89532 7.659 11.7535C7.51718 11.61167 7.4375 11.41932 7.4375 11.21875Z" fill="currentColor" /></symbol>
       <symbol id="edit-icon-t-independent" viewBox="0 0 30 30"><path d="M7.4375 8.1937499C7.4375 7.99318004 7.517176092 7.80082482 7.65900047 7.65900047C7.80082482 7.517176092 7.99318004 7.4375 8.1937499 7.4375H21.80625C22.006819999999998 7.4375 22.199175 7.517176092 22.341 7.65900047C22.482825 7.80082482 22.5625 7.99318004 22.5625 8.1937499V11.21875C22.5625 11.4193199 22.482825 11.6116743 22.341 11.753499C22.199175 11.8953238 22.006819999999998 11.9749999 21.80625 11.9749999C21.60568 11.9749999 21.413323 11.8953238 21.271501 11.753499C21.129676 11.6116743 21.050001 11.4193199 21.050001 11.21875V8.9499998H15.7562494V21.050001H18.024999C18.225569999999998 21.050001 18.417926 21.129676 18.55975 21.271501C18.701575 21.413323 18.78125 21.60568 18.78125 21.80625C18.78125 22.006819999999998 18.701575 22.199175 18.55975 22.341C18.417926 22.482825 18.225569999999998 22.5625 18.024999 22.5625H11.9749999C11.7744303 22.5625 11.5820746 22.482825 11.4402504 22.341C11.2984262 22.199175 11.21875 22.006819999999998 11.21875 21.80625C11.21875 21.60568 11.2984262 21.413323 11.4402504 21.271501C11.5820746 21.129676 11.7744303 21.050001 11.9749999 21.050001H14.2437506V8.9499998H8.9499998V11.21875C8.9499998 11.4193199 8.8703239 11.6116743 8.7284995 11.753499C8.586675 11.8953238 8.39431989 11.9749999 8.1937499 11.9749999C7.99318004 11.9749999 7.80082482 11.8953238 7.65900047 11.753499C7.517176092 11.6116743 7.4375 11.4193199 7.4375 11.21875Z" fill="#404040" /><path d="M20.850001 11.218751V9.1499999H15.9562502V20.850001H18.025Q18.421094 20.850001 18.701172 21.130081Q18.981251 21.410151 18.981251 21.806251Q18.981251 22.202347 18.70117 22.482423Q18.421098 22.762501 18.025 22.762501H11.9750004Q11.578904 22.762501 11.298829 22.482421Q11.01875 22.202342 11.01875 21.806251Q11.01875 21.410155 11.29883 21.130079Q11.578908 20.850001 11.9750004 20.850001H14.043751V9.1499999H9.15V11.2187502Q9.15 11.6148415 8.869921 11.8949203Q8.589842 12.175 8.19375 12.175Q7.797658 12.175 7.517579 11.89492Q7.2375 11.614841 7.2375 11.218751V8.1937499Q7.2375 7.7976582 7.517579 7.517579Q7.797658 7.2375 8.19375 7.2375H21.806251Q22.202342 7.2375 22.482422 7.517579Q22.762501 7.797654 22.762501 8.19375V11.2187502Q22.762501 11.614844 22.482421 11.894921Q22.202342 12.175 21.806251 12.175Q21.410155 12.175 21.130079 11.894919Q20.850001 11.614842 20.850001 11.218751Z" fill="#000000" fill-rule="evenodd" /></symbol>
+      <symbol id="edit-icon-t-format" viewBox="0 0 30 30"><path d="M7.4375 8.1937499C7.4375 7.99318004 7.517176092 7.80082482 7.65900047 7.65900047C7.80082482 7.517176092 7.99318004 7.4375 8.1937499 7.4375H21.80625C22.006819999999998 7.4375 22.199175 7.517176092 22.341 7.65900047C22.482825 7.80082482 22.5625 7.99318004 22.5625 8.1937499V11.21875C22.5625 11.4193199 22.482825 11.6116743 22.341 11.753499C22.199175 11.8953238 22.006819999999998 11.9749999 21.80625 11.9749999C21.60568 11.9749999 21.413323 11.8953238 21.271501 11.753499C21.129676 11.6116743 21.050001 11.4193199 21.050001 11.21875V8.9499998H15.7562494V21.050001H18.024999C18.225569999999998 21.050001 18.417926 21.129676 18.55975 21.271501C18.701575 21.413323 18.78125 21.60568 18.78125 21.80625C18.78125 22.006819999999998 18.701575 22.199175 18.55975 22.341C18.417926 22.482825 18.225569999999998 22.5625 18.024999 22.5625H11.9749999C11.7744303 22.5625 11.5820746 22.482825 11.4402504 22.341C11.2984262 22.199175 11.21875 22.006819999999998 11.21875 21.80625C11.21875 21.60568 11.2984262 21.413323 11.4402504 21.271501C11.5820746 21.129676 11.7744303 21.050001 11.9749999 21.050001H14.2437506V8.9499998H8.9499998V11.21875C8.9499998 11.4193199 8.8703239 11.6116743 8.7284995 11.753499C8.586675 11.8953238 8.39431989 11.9749999 8.1937499 11.9749999C7.99318004 11.9749999 7.80082482 11.8953238 7.65900047 11.753499C7.517176092 11.6116743 7.4375 11.4193199 7.4375 11.21875Z" fill="#404040" /></symbol>
       <symbol id="edit-icon-align" viewBox="0 0 30 30"><path d="M16.95687 7.69616C16.95687 8.21164 16.53747 8.64499 16.01488 8.64623L7.69152 8.66605C7.16717 8.6673 6.74954 8.24481 6.74954 7.72047C6.74954 7.20499 7.16894 6.77164 7.69152 6.7704L16.01488 6.75058C16.53923 6.74933 16.95687 7.17181 16.95687 7.69616ZM24.24929 12.58853C24.24929 13.09778 23.80797 13.52924 23.2845 13.52924H7.71432C7.19085 13.52924 6.74954 13.09778 6.74954 12.57431C6.74954 12.06506 7.19085 11.63359 7.71432 11.63359H23.2845C23.80797 11.63359 24.24929 12.06506 24.24929 12.58853ZM16.95687 17.41784C16.95687 17.93332 16.53747 18.36667 16.01488 18.36791L7.69152 18.38773C7.16717 18.38898 6.74954 17.96649 6.74954 17.44215C6.74954 16.92667 7.16894 16.49332 7.69152 16.49208L16.01488 16.47226C16.53923 16.47101 16.95687 16.89349 16.95687 17.41784ZM24.24929 22.30972C24.24929 22.81897 23.80797 23.25043 23.2845 23.25043H7.71432C7.19085 23.25043 6.74954 22.81897 6.74954 22.2955C6.74954 21.78625 7.19085 21.35478 7.71432 21.35478H23.2845C23.80797 21.35478 24.24929 21.78625 24.24929 22.30972Z" fill="currentColor" fill-rule="evenodd" /></symbol>
       <symbol id="edit-icon-check" viewBox="0 0 30 30"><path d="M21.76998 6.06201H8.22831C7.0317 6.06201 6.06165 7.03206 6.06165 8.22868V21.77035C6.06165 22.96696 7.0317 23.93701 8.22831 23.93701H21.76998C22.9666 23.93701 23.93665 22.96696 23.93665 21.77035V8.22868C23.93665 7.03206 22.9666 6.06201 21.76998 6.06201ZM21.76998 7.68701C22.06913 7.68701 22.31165 7.92952 22.31165 8.22868V21.77035C22.31165 22.0695 22.06913 22.31201 21.76998 22.31201H8.22831C7.92916 22.31201 7.68665 22.0695 7.68665 21.77035V8.22868C7.68665 7.92952 7.92916 7.68701 8.22831 7.68701H21.76998ZM14.7989 19.88934C14.53078 20.30507 14.17463 20.51225 13.72911 20.51225H13.72776C13.50026 20.51225 13.29442 20.46621 13.11026 20.37142C12.92744 20.27798 12.7514 20.11684 12.58213 19.88934L9.9063 16.54454C9.70723 16.28725 9.60838 16.01507 9.60838 15.72798C9.60446 15.45034 9.71173 15.18265 9.9063 14.98454C10.09361 14.78157 10.35868 14.66824 10.63484 14.67309C10.80936 14.67219 10.98189 14.71012 11.13994 14.78413C11.33025 14.88553 11.49366 15.03083 11.61661 15.20798L13.66817 17.97184L18.24796 10.57132C18.4863 10.17455 18.78963 9.97684 19.15526 9.97684C19.42816 9.97489 19.69346 10.06667 19.90682 10.23684C20.12661 10.40346 20.25142 10.66673 20.2413 10.94236C20.24164 11.09955 20.20597 11.25474 20.13703 11.396C20.06796 11.53955 19.99348 11.67632 19.91359 11.80496L14.7989 19.88934Z" fill="currentColor" fill-rule="evenodd" /></symbol>
       <symbol id="edit-icon-undo" viewBox="0 0 30 30"><path d="M9.28676 10.45683L12.1368 7.77043C12.47191 7.45456 12.48251 6.96677 12.14741 6.6509L12.13376 6.63803C11.79867 6.32216 11.2565 6.31251 10.9214 6.62838L6.06176 11.20922L10.9214 15.79006C11.2565 16.10593 11.77591 16.11773 12.11101 15.80185L12.12466 15.78899C12.45975 15.47312 12.47188 14.96383 12.1368 14.64795L9.40687 12.0745H16.78553C19.87006 12.15375 22.21996 14.41676 22.21996 17.19714C22.21996 20.0263 19.78688 22.31978 16.78553 22.31978H8.44634C7.99963 22.31978 7.63281 22.68798 7.63281 23.12255C7.63281 23.56926 7.99963 23.93746 8.44634 23.93746H16.78553C20.82953 23.84722 23.93609 20.86415 23.93609 17.19714C23.93609 13.47457 20.73467 10.45683 16.78553 10.45683H9.28676Z" fill="currentColor" fill-rule="evenodd" /></symbol>
@@ -2280,10 +2283,10 @@ body { background:rgb(242,241,246); overflow:hidden }
       const active=action==='format-text'?editToolbar.dataset.formatOpen==='true':
         action==='text-style'?editToolbar.dataset.styleOpen==='true':
         action==='align-left'?editToolbar.dataset.alignOpen==='true':
-        action==='bold'?(commandState('bold')||activeBlock?.dataset.paperBold==='true'||(level!=='body'&&Boolean(activeBlock&&activeBlock!==paperEditor))):
-        action==='italic'?(commandState('italic')||activeBlock?.dataset.paperItalic==='true'):
-        action==='underline'?(commandState('underline')||activeBlock?.dataset.paperUnderline==='true'):
-        action==='strike'?(commandState('strikeThrough')||activeBlock?.dataset.paperStrike==='true'):
+        action==='bold'?(activeBlock?.dataset.paperBold!=null?activeBlock.dataset.paperBold==='true':(commandState('bold')||level!=='body')):
+        action==='italic'?(activeBlock?.dataset.paperItalic!=null?activeBlock.dataset.paperItalic==='true':commandState('italic')):
+        action==='underline'?(activeBlock?.dataset.paperUnderline!=null?activeBlock.dataset.paperUnderline==='true':commandState('underline')):
+        action==='strike'?(activeBlock?.dataset.paperStrike!=null?activeBlock.dataset.paperStrike==='true':commandState('strikeThrough')):
         action==='checklist'?activeBlock?.dataset.paperChecklist==='true':
         action===level;
       const enabled=action==='format-text'||formatAction||action==='text-style'||action==='align-left'||
@@ -2294,6 +2297,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       button.classList.toggle('is-disabled',!enabled);
       button.setAttribute('aria-disabled',String(!enabled));
       button.classList.toggle('is-active',Boolean(active)&&enabled);
+      if(['bold','italic','underline','strike'].includes(action))button.setAttribute('aria-pressed',String(Boolean(active)&&enabled));
     });
   };
   const setFormatToolbarOpen=open=>{
@@ -2333,24 +2337,37 @@ body { background:rgb(242,241,246); overflow:hidden }
     setStyleToolbarOpen(false);
     setAlignToolbarOpen(false);
   };
+  const restorePaperSelection=()=>{
+    const range=getActivePaperRange()?.cloneRange();
+    paperEditor.focus({preventScroll:true});
+    if(range&&paperEditor.contains(range.startContainer)){
+      const selection=window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      lastPaperRange=range.cloneRange();
+    }
+    ensurePaperCaretInsideBlock();
+  };
   const runEditToolbarAction=action=>{
     if(!paperEditing)return;
     if(action==='format-text'){
+      restorePaperSelection();
       setFormatToolbarOpen(editToolbar.dataset.formatOpen!=='true');
       return;
     }
     if(action==='text-style'){
+      restorePaperSelection();
       setStyleToolbarOpen(editToolbar.dataset.styleOpen!=='true');
       syncEditToolbar();
       return;
     }
     if(action==='align-left'){
+      restorePaperSelection();
       setAlignToolbarOpen(editToolbar.dataset.alignOpen!=='true');
       syncEditToolbar();
       return;
     }
-    paperEditor.focus({preventScroll:true});
-    ensurePaperCaretInsideBlock();
+    restorePaperSelection();
     if(action==='title'||action==='subtitle'||action==='section'||action==='body'){
       setHeadingLevel(action);
     }else if(action==='unordered-list'){
@@ -2368,7 +2385,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       document.execCommand(command);
       const block=getPaperCaretBlock();
       const key={bold:'paperBold',italic:'paperItalic',underline:'paperUnderline',strike:'paperStrike'}[action];
-      if(block&&block!==paperEditor)block.dataset[key]=String(!commandState(command));
+      if(block&&block!==paperEditor)block.dataset[key]=String(commandState(command));
     }else if(action==='indent-increase'||action==='indent-decrease'){
       const block=getPaperCaretBlock();
       if(block&&block!==paperEditor){
@@ -2392,6 +2409,12 @@ body { background:rgb(242,241,246); overflow:hidden }
     syncEditToolbar();
     positionPaperIndex();
   };
+  editStyleRow.addEventListener('pointerdown',event=>{
+    if(event.target.closest('button'))event.preventDefault();
+  });
+  editToolbar.addEventListener('pointerdown',event=>{
+    if(event.target.closest('button'))event.preventDefault();
+  });
   editToolbarButtons.forEach(button=>button.addEventListener('click',()=>runEditToolbarAction(button.dataset.editAction)));
   headingOverlay.addEventListener('click',event=>{
     if(event.target===headingOverlay)setHeadingMenu(false);
