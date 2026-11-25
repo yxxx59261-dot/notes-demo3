@@ -476,6 +476,7 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-button:active { background:rgba(65,105,225,.08); }
 .edit-toolbar-main .edit-toolbar-button.is-active { color:#404040; background:#f1f4ff; box-shadow:none; }
 .edit-toolbar-main [data-edit-action="format-text"].is-active { color:#4169e1; background:#f1f4ff; }
+.edit-toolbar-main [data-edit-action="text-style"].is-active { color:#4169e1; background:#f1f4ff; }
 .edit-toolbar-main .edit-toolbar-button.is-disabled { color:#9a9a9a; background:transparent; box-shadow:none; }
 .edit-toolbar-button:disabled { color:#9a9a9a; cursor:default; pointer-events:none; }
 .edit-toolbar-format .edit-toolbar-button.is-active { color:#4169e1; background:#f1f4ff; border:1px solid #afc7ee; box-shadow:none; }
@@ -499,6 +500,7 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-style-glyph--underline { text-decoration:underline; text-decoration-thickness:1.5px; text-underline-offset:3px; }
 .edit-toolbar-style-glyph--strike { text-decoration:line-through; text-decoration-thickness:1.5px; }
 .edit-toolbar-provided-icon { display:block; width:30px; height:30px; flex:0 0 30px; object-fit:contain; pointer-events:none; user-select:none; }
+.edit-toolbar-native-aa { display:block; width:30px; height:30px; color:inherit; font:400 20px/30px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; text-align:center; white-space:nowrap; pointer-events:none; user-select:none; }
 .edit-toolbar-button--provided { padding:0; }
 .edit-toolbar-format .edit-toolbar-button:disabled .edit-toolbar-provided-icon,
 .edit-toolbar-format .edit-toolbar-button.is-disabled .edit-toolbar-provided-icon { opacity:.42; }
@@ -2039,7 +2041,6 @@ body { background:rgb(242,241,246); overflow:hidden }
   const editAlignRow=editToolbar.querySelector('.edit-toolbar-align');
   [
     editToolbar.querySelector('[data-edit-action="dotted-list"] img'),
-    editToolbar.querySelector('[data-edit-action="text-style"] img'),
     paperFitButton.querySelector('img')
   ].forEach(icon=>{
     const svg=new DOMParser().parseFromString(atob(icon.src.split(',')[1]),'image/svg+xml').documentElement;
@@ -2051,7 +2052,13 @@ body { background:rgb(242,241,246); overflow:hidden }
     }
     icon.replaceWith(svg);
   });
-  const formatIconVariants=new Map([...editFormatRow.querySelectorAll('.edit-toolbar-button--provided img')].map(icon=>{
+  const textStyleIcon=editToolbar.querySelector('[data-edit-action="text-style"] img');
+  const aaGlyph=document.createElement('span');
+  aaGlyph.className='edit-toolbar-native-aa';
+  aaGlyph.setAttribute('aria-hidden','true');
+  aaGlyph.textContent='Aa';
+  textStyleIcon.replaceWith(aaGlyph);
+  const activeIconVariants=new Map([...editToolbar.querySelectorAll('.edit-toolbar-format .edit-toolbar-button--provided img,.edit-toolbar-style .edit-toolbar-button--provided img')].map(icon=>{
     const button=icon.closest('button');
     const original=icon.src;
     const svg=atob(original.slice(original.indexOf(',')+1));
@@ -2356,7 +2363,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       button.classList.toggle('is-disabled',!enabled);
       button.setAttribute('aria-disabled',String(!enabled));
       button.classList.toggle('is-active',Boolean(active)&&enabled);
-      const iconVariant=formatIconVariants.get(button);
+      const iconVariant=activeIconVariants.get(button);
       if(iconVariant){
         const source=active&&enabled?iconVariant.active:iconVariant.original;
         if(iconVariant.icon.src!==source)iconVariant.icon.src=source;
