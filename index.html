@@ -2942,7 +2942,9 @@ body { background:rgb(242,241,246); overflow:hidden }
     let rect=caret.getBoundingClientRect();
     const bounds=paperViewport.getBoundingClientRect();
     const inset=24;
-    const topInset=parseFloat(getComputedStyle(paperViewport).paddingTop||'0')+inset;
+    const scaleX=bounds.width/(paperViewport.clientWidth||1)||1;
+    const scaleY=bounds.height/(paperViewport.clientHeight||1)||1;
+    const topInset=parseFloat(getComputedStyle(paperViewport).paddingTop||'0')*scaleY+inset;
     if(rect.width===0&&rect.height===0){
       const lastBlock=paperEditor.lastElementChild;
       const block=lastBlock&&!lastBlock.textContent.trim()?lastBlock:getPaperCaretBlock();
@@ -2954,17 +2956,17 @@ body { background:rgb(242,241,246); overflow:hidden }
     let left=paperViewport.scrollLeft;
     let top=paperViewport.scrollTop;
     if(horizontal){
-      if(rect.right>bounds.right-inset)left+=rect.right-(bounds.right-inset);
-      if(rect.left<bounds.left+inset)left-=bounds.left+inset-rect.left;
+      if(rect.right>bounds.right-inset)left+=(rect.right-(bounds.right-inset))/scaleX;
+      if(rect.left<bounds.left+inset)left-=(bounds.left+inset-rect.left)/scaleX;
     }
-    if(rect.bottom>bounds.bottom-inset)top+=rect.bottom-(bounds.bottom-inset);
-    if(rect.top<bounds.top+topInset)top-=bounds.top+topInset-rect.top;
+    if(rect.bottom>bounds.bottom-inset)top+=(rect.bottom-(bounds.bottom-inset))/scaleY;
+    if(rect.top<bounds.top+topInset)top-=(bounds.top+topInset-rect.top)/scaleY;
     const blocks=getPaperBlocks();
     const caretBlockIndex=blocks.indexOf(getPaperCaretBlock());
     if(caretBlockIndex>=0&&caretBlockIndex<2){
       const firstTop=blocks[0]?.getBoundingClientRect().top;
       const revealFirst=bounds.top+topInset-firstTop;
-      if(revealFirst>0&&rect.bottom+revealFirst<bounds.bottom-inset)top-=revealFirst;
+      if(revealFirst>0&&rect.bottom+revealFirst<bounds.bottom-inset)top-=revealFirst/scaleY;
     }
     scrollPaperToCaret(left,top);
   };
