@@ -513,6 +513,8 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar-list-icon text { fill:currentColor; stroke:none; font:600 6px/1 Arial,sans-serif; }
 .edit-toolbar-fit { position:absolute; right:0; top:2px; width:51px; height:36px; display:flex; align-items:center; justify-content:center; border:0; border-radius:0 20px 0 0; padding:4px; background:transparent; box-shadow:none; cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
 .edit-toolbar-fit:active { opacity:.68; }
+.edit-toolbar-fit.is-active { background:#f1f4ff; border-radius:20px; }
+.edit-toolbar-fit.is-active .edit-toolbar-fit-provided-icon rect[fill="#FFFFFF"] { fill:#f1f4ff; }
 .edit-toolbar-fit:focus-visible { outline:2px solid #4169e1; outline-offset:2px; }
 .edit-toolbar-fit-icon { display:block; width:22px; height:22px; }
 /* Anchor both floating rows above the visible keyboard. */
@@ -2505,6 +2507,12 @@ body { background:rgb(242,241,246); overflow:hidden }
     syncEditToolbar();
     positionPaperIndex();
   });
+  paperEditor.addEventListener('blur',()=>{
+    if(app.dataset.handwriteOpen!=='true')return;
+    paperEditing=false;
+    closeEditPopups();
+    fit();
+  });
   let typingScrollLeft=null;
   let typingScrollTop=null;
   const rememberTypingScrollPosition=()=>{
@@ -2774,6 +2782,7 @@ body { background:rgb(242,241,246); overflow:hidden }
   };
   let paperZoom=1;
   let paperFitted=false;
+  let paperZoomBeforeFit=null;
   let paperEditing=false;
   let gestureStartZoom=1;
   let paperZoomAnimationFrame=0;
@@ -2888,6 +2897,15 @@ body { background:rgb(242,241,246); overflow:hidden }
     const textWidth=Math.max(1,paperBase.width-2*paperBase.textMargin);
     return Math.min(2.2,(width-2*sideGap)/textWidth);
   };
+  const updatePaperFitButtonState=()=>{
+    const fitZoom=getPaperTextFitZoom();
+    const active=Number.isFinite(fitZoom)&&Math.abs(paperZoom-fitZoom)<.012;
+    paperFitButton.classList.toggle('is-active',active);
+    paperFitButton.setAttribute('aria-pressed',String(active));
+    const label=active?'恢复纸张大小':'纸张缩放至1.0倍';
+    paperFitButton.setAttribute('aria-label',label);
+    paperFitButton.title=label;
+  };
   const animatePaperZoom=(from,to,duration,onDone,options={})=>{
     cancelAnimationFrame(paperZoomAnimationFrame);
     const started=performance.now();
@@ -2912,9 +2930,6 @@ body { background:rgb(242,241,246); overflow:hidden }
   paperFitButton.addEventListener('click',event=>{
     event.preventDefault();
     event.stopPropagation();
-    paperEditing=false;
-    paperEditor.blur();
-    closeEditPopups();
     paperFitButton.classList.remove('is-tapping');
     void paperFitButton.offsetWidth;
     paperFitButton.classList.add('is-tapping');
@@ -2923,7 +2938,12 @@ body { background:rgb(242,241,246); overflow:hidden }
     cancelPaperZoomAnimation();
     cancelAnimationFrame(flingFrame);
     cancelAnimationFrame(caretScrollFrame);
-    const targetZoom=getPaperTextFitZoom();
+    const fitZoom=getPaperTextFitZoom();
+    const isAtFit=Math.abs(paperZoom-fitZoom)<.012;
+    const targetZoom=isAtFit
+      ? Math.max(.01,Math.min(2.2,paperZoomBeforeFit??2))
+      : fitZoom;
+    if(!isAtFit)paperZoomBeforeFit=paperZoom;
     if(Math.abs(paperZoom-targetZoom)<.001)return;
     const startZoom=paperZoom;
     const startLeft=paperViewport.scrollLeft;
@@ -2939,12 +2959,16 @@ body { background:rgb(242,241,246); overflow:hidden }
       setPaperZoom(targetZoom);
       alignPaper(1);
       positionPaperIndex();
+      updatePaperFitButtonState();
+      paperEditor.focus({preventScroll:true});
       return;
     }
     animatePaperZoom(startZoom,targetZoom,420,()=>{
       layoutPaperEditor(targetZoom);
       positionPaperIndex();
       if(headingMenuOpen)positionHeadingMenu();
+      updatePaperFitButtonState();
+      paperEditor.focus({preventScroll:true});
     },{onFrame:alignPaper});
   });
   paperViewport.addEventListener('wheel',event=>{
@@ -3166,6 +3190,11 @@ body { background:rgb(242,241,246); overflow:hidden }
     const scaleX=bounds.width/(paperViewport.clientWidth||1)||1;
     const scaleY=bounds.height/(paperViewport.clientHeight||1)||1;
     const topInset=parseFloat(getComputedStyle(paperViewport).paddingTop||'0')*scaleY+inset;
+    const toolbarVisible=editToolbar?.getAttribute('aria-hidden')==='false';
+    const toolbarRect=toolbarVisible?editToolbar.getBoundingClientRect():null;
+    const visibleBottom=toolbarRect&&toolbarRect.top>bounds.top
+      ? Math.min(bounds.bottom,toolbarRect.top-8)
+      : bounds.bottom;
     if(rect.width===0&&rect.height===0){
       const lastBlock=paperEditor.lastElementChild;
       const block=lastBlock&&!lastBlock.textContent.trim()?lastBlock:getPaperCaretBlock();
@@ -3180,14 +3209,20 @@ body { background:rgb(242,241,246); overflow:hidden }
       if(rect.right>bounds.right-horizontalInset)left+=(rect.right-(bounds.right-horizontalInset))/scaleX;
       if(rect.left<bounds.left+horizontalInset)left-=(bounds.left+horizontalInset-rect.left)/scaleX;
     }
-    if(rect.bottom>bounds.bottom-inset)top+=(rect.bottom-(bounds.bottom-inset))/scaleY;
+    if(rect.bottom>visibleBottom-inset){
+      const caretHeight=rect.height||rect.bottom-rect.top;
+      const targetTop=toolbarVisible
+        ? (bounds.top+topInset+visibleBottom-inset-caretHeight)/2
+        : visibleBottom-inset-caretHeight;
+      top+=(rect.top-targetTop)/scaleY;
+    }
     if(rect.top<bounds.top+topInset)top-=(bounds.top+topInset-rect.top)/scaleY;
     const blocks=getPaperBlocks();
     const caretBlockIndex=blocks.indexOf(getPaperCaretBlock());
     if(caretBlockIndex>=0&&caretBlockIndex<2){
       const firstTop=blocks[0]?.getBoundingClientRect().top;
       const revealFirst=bounds.top+topInset-firstTop;
-      if(revealFirst>0&&rect.bottom+revealFirst<bounds.bottom-inset)top-=revealFirst/scaleY;
+      if(revealFirst>0&&rect.bottom+revealFirst<visibleBottom-inset)top-=revealFirst/scaleY;
     }
     scrollPaperToCaret(left,top);
   };
@@ -3266,6 +3301,7 @@ body { background:rgb(242,241,246); overflow:hidden }
         420,
         ()=>{
           positionPaperIndex();
+          requestAnimationFrame(()=>keepPaperCaretVisible({horizontal:true}));
         },
         {anchorX:event.clientX,anchorY:event.clientY}
       );
@@ -3273,6 +3309,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     paperEditor.focus({preventScroll:true});
     if(!placeCaretAtRange(clickedRange))placeCaretAtNoteEnd();
     positionPaperIndex();
+    requestAnimationFrame(()=>keepPaperCaretVisible({horizontal:true}));
   };
   paperCanvas.addEventListener('pointerdown',event=>{
     editCenterPoint=null;
@@ -3321,6 +3358,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     app.dataset.handwriteOpen=String(next);
     handwriteScreen.setAttribute('aria-hidden',String(!next));
     if(next){
+      paperZoomBeforeFit=null;
       // 新建从空白纸开始；点击已有卡片时加载对应笔记内容。
       const noteText=noteCard?noteBodyForCard(noteCard):'';
       setPaperEditorText(noteText);
@@ -3341,6 +3379,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       // Existing notes open at the same text-fit scale as the 1.0 control.
       const defaultZoom=noteCard?getPaperTextFitZoom():fitZoom;
       setPaperZoom(defaultZoom);
+      updatePaperFitButtonState();
       paperViewport.scrollLeft=0;
       paperViewport.scrollTop=0;
       paperCanvas.classList.remove('is-pulled');
@@ -3358,6 +3397,7 @@ body { background:rgb(242,241,246); overflow:hidden }
         // position until the user tapped the paper.
         const targetScrollLeft=Math.max(0,paperBase.textMargin-paperBase.newNoteCaretOffset);
         setPaperZoom(1);
+        updatePaperFitButtonState();
         setPaperPull(0,0);
         paperEditor.focus({preventScroll:true});
         placeCaretAtNoteEnd();
@@ -3367,6 +3407,7 @@ body { background:rgb(242,241,246); overflow:hidden }
           positionPaperIndex();
         });
       }
+      fit();
     } else {
       followNewNoteEnd=false;
       paperEditing=false;
@@ -3375,6 +3416,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       cancelPaperZoomAnimation();
       paperEditor.blur();
       addTrigger.focus({preventScroll:true});
+      fit();
     }
   };
   addTrigger.addEventListener('click',()=>openHandwrite(true));
@@ -3683,10 +3725,9 @@ body { background:rgb(242,241,246); overflow:hidden }
       unfocusedViewportHeight=viewportHeight;
       unfocusedViewportWidth=viewportWidth;
     }
-    const keyboardOpen=Boolean(app.dataset.handwriteOpen==='true'&&(
-      paperEditing||
-      (document.activeElement===paperEditor&&viewportHeight<unfocusedViewportHeight-120)
-    ));
+    const keyboardOpen=Boolean(app.dataset.handwriteOpen==='true'&&paperEditing&&
+      viewportHeight<unfocusedViewportHeight-120
+    );
     const scale=Math.max(viewportWidth/375,viewportHeight/812);
     const height=Math.min(812,Math.max(1,viewportHeight/scale));
     const stage=document.querySelector('.demo-stage');
@@ -3707,7 +3748,9 @@ body { background:rgb(242,241,246); overflow:hidden }
     handwriteScreen.style.bottom='0px';
     if(paperFitted)setPaperZoom(0);
     else layoutPaperEditor(paperZoom);
+    updatePaperFitButtonState();
     recenterPendingEdit();
+    if(keyboardOpen)requestAnimationFrame(()=>keepPaperCaretVisible({horizontal:true}));
     const tabs=app.querySelector('.n1-tabs-1');
     const tabsHeight=tabs ? tabs.offsetHeight : 48;
     const bottomGap=20;
