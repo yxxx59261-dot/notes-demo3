@@ -2152,7 +2152,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     }
     // Keep the heading marker inside the paper's text area instead of
     // pushing it against the paper edge when the text-fit zoom is active.
-    const left=textLeft-indexWidth;
+    const left=textLeft-indexWidth-paperTextLeftNudge/paperZoom;
     const top=lineCenter-indexHeight/2;
     paperIndex.style.left=`${Math.max(0,left)}px`;
     paperIndex.style.top=`${Math.max(0,top)}px`;
@@ -2282,7 +2282,18 @@ body { background:rgb(242,241,246); overflow:hidden }
     syncEditToolbar();
     positionPaperIndex();
   });
-  paperEditor.addEventListener('compositionstart',()=>{paperComposing=true;});
+  let typingScrollLeft=null;
+  const rememberTypingScrollPosition=()=>{
+    if(!Number.isFinite(typingScrollLeft))typingScrollLeft=paperViewport.scrollLeft;
+  };
+  const restoreTypingScrollPosition=()=>{
+    if(!Number.isFinite(typingScrollLeft))return;
+    paperViewport.scrollLeft=typingScrollLeft;
+  };
+  paperEditor.addEventListener('compositionstart',()=>{
+    paperComposing=true;
+    rememberTypingScrollPosition();
+  });
   paperEditor.addEventListener('compositionend',()=>{
     paperComposing=false;
     requestAnimationFrame(()=>{
@@ -2290,7 +2301,9 @@ body { background:rgb(242,241,246); overflow:hidden }
       normalizePaperBlocks();
       if(followNewNoteEnd)placeCaretAtNoteEnd();
       positionPaperIndex();
-      keepPaperCaretVisible();
+      restoreTypingScrollPosition();
+      keepPaperCaretVisible({horizontal:false});
+      typingScrollLeft=null;
     });
   });
   paperEditor.addEventListener('click',positionPaperIndex);
@@ -2309,6 +2322,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     positionHeadingMenu();
   },{passive:true});
   const paperBase={width:794,height:1123,textMargin:150,newNoteCaretOffset:56,paddingTop:14,paddingBottom:120,editorHeight:975,fontSize:16};
+  const paperTextLeftNudge=3;
   let currentDraftCard=null;
   let currentDraftText='';
   const localDateParts=date=>{
@@ -2385,10 +2399,14 @@ body { background:rgb(242,241,246); overflow:hidden }
     });
   };
   paperEditor.addEventListener('keydown',event=>{
+    if(event.key==='Enter'||event.key.length===1||event.key==='Backspace'||event.key==='Delete'){
+      rememberTypingScrollPosition();
+    }
     if(event.key==='Enter'&&!paperComposing)capturePaperBreak();
     if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))followNewNoteEnd=false;
   });
   paperEditor.addEventListener('beforeinput',event=>{
+    if(event.inputType!=='insertCompositionText')rememberTypingScrollPosition();
     if(paperComposing||event.isComposing||event.inputType==='insertCompositionText')return;
     if(followNewNoteEnd)placeCaretAtNoteEnd();
     else ensurePaperCaretInsideBlock();
@@ -2677,7 +2695,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     const alignPaper=(progress)=>{
       const width=paperViewport.clientWidth;
       const sideGap=Math.min(20,width*.08);
-      const targetLeft=Math.max(0,paperStage.offsetLeft+paperBase.textMargin*paperZoom-sideGap);
+      const targetLeft=Math.max(0,paperStage.offsetLeft+paperBase.textMargin*paperZoom-sideGap-paperTextLeftNudge);
       paperViewport.scrollLeft=startLeft+(targetLeft-startLeft)*progress;
       paperViewport.scrollTop=startTop*(1-progress);
     };
@@ -2900,7 +2918,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     };
     caretScrollFrame=requestAnimationFrame(step);
   };
-  const keepPaperCaretVisible=()=>{
+  const keepPaperCaretVisible=({horizontal=true}={})=>{
     const selection=window.getSelection();
     if(!selection||!selection.rangeCount||!paperEditor.contains(selection.anchorNode))return;
     const caret=selection.getRangeAt(0).cloneRange();
@@ -2911,8 +2929,10 @@ body { background:rgb(242,241,246); overflow:hidden }
     const topInset=parseFloat(getComputedStyle(paperViewport).paddingTop||'0')+inset;
     let left=paperViewport.scrollLeft;
     let top=paperViewport.scrollTop;
-    if(rect.right>bounds.right-inset)left+=rect.right-(bounds.right-inset);
-    if(rect.left<bounds.left+inset)left-=bounds.left+inset-rect.left;
+    if(horizontal){
+      if(rect.right>bounds.right-inset)left+=rect.right-(bounds.right-inset);
+      if(rect.left<bounds.left+inset)left-=bounds.left+inset-rect.left;
+    }
     if(rect.bottom>bounds.bottom-inset)top+=rect.bottom-(bounds.bottom-inset);
     if(rect.top<bounds.top+topInset)top-=bounds.top+topInset-rect.top;
     const blocks=getPaperBlocks();
@@ -3016,6 +3036,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     paperTapStart=null;
   });
   paperEditor.addEventListener('input',event=>{
+    restoreTypingScrollPosition();
     editCenterPoint=null;
     const text=readDraft();
     if(text.trim()){
@@ -3030,8 +3051,18 @@ body { background:rgb(242,241,246); overflow:hidden }
       currentDraftText='';
     }
   });
-  paperEditor.addEventListener('input',keepPaperCaretVisible);
-  paperEditor.addEventListener('keyup',keepPaperCaretVisible);
+  paperEditor.addEventListener('input',()=>{
+    restoreTypingScrollPosition();
+    keepPaperCaretVisible({horizontal:false});
+    typingScrollLeft=null;
+  });
+  paperEditor.addEventListener('keyup',event=>{
+    if(event.key.length===1||event.key==='Enter'||event.key==='Backspace'||event.key==='Delete'){
+      restoreTypingScrollPosition();
+      keepPaperCaretVisible({horizontal:false});
+      typingScrollLeft=null;
+    }
+  });
   paperEditor.addEventListener('click',()=>{
     if(paperEditing&&Math.abs(paperZoom-1)<.01)keepPaperCaretVisible();
   });
@@ -3066,7 +3097,7 @@ body { background:rgb(242,241,246); overflow:hidden }
         requestAnimationFrame(()=>{
           const width=paperViewport.clientWidth;
           const sideGap=Math.min(20,width*.08);
-          paperViewport.scrollLeft=Math.max(0,paperStage.offsetLeft+paperBase.textMargin*paperZoom-sideGap);
+          paperViewport.scrollLeft=Math.max(0,paperStage.offsetLeft+paperBase.textMargin*paperZoom-sideGap-paperTextLeftNudge);
           paperViewport.scrollTop=0;
           positionPaperIndex();
         });
