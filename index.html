@@ -521,7 +521,7 @@ body { background:rgb(242,241,246); overflow:hidden }
 .edit-toolbar { left:0; top:auto; right:auto; bottom:8px; width:375px; height:38px; }
 .edit-toolbar-main .edit-toolbar-button--provided { padding:0; }
 .edit-toolbar-main .edit-toolbar-provided-icon { display:block; width:30px; height:30px; flex:0 0 30px; object-fit:contain; }
-.edit-toolbar-fit { left:304px; top:-10px; right:auto; width:75px; height:60px; padding:0; border-radius:0; background:transparent; box-shadow:none; }
+.edit-toolbar-fit { left:304px; top:auto; right:auto; bottom:-4px; width:75px; height:60px; padding:0; border-radius:0; background:transparent; box-shadow:none; z-index:29; }
 .edit-toolbar-fit-provided-icon { display:block; width:75px; height:60px; pointer-events:none; user-select:none; }
 /* Keep the toolbar icons vector-like and transparent over the gray toolbar. */
 .handwrite-actions img { display:none; }
@@ -2029,6 +2029,8 @@ body { background:rgb(242,241,246); overflow:hidden }
   const paperEditor=handwriteScreen.querySelector('.paper-editor');
   const paperIndex=paperCanvas.querySelector('.paper-index');
   const paperFitButton=handwriteScreen.querySelector('.edit-toolbar-fit');
+  // Keep the 1.0x control independent from the edit-only floating toolbar.
+  handwriteScreen.append(paperFitButton);
   const headingOverlay=handwriteScreen.querySelector('.heading-level-overlay');
   const headingOptions=[...handwriteScreen.querySelectorAll('.heading-level-option')];
   const editToolbar=handwriteScreen.querySelector('.edit-toolbar');
@@ -3288,7 +3290,9 @@ body { background:rgb(242,241,246); overflow:hidden }
   };
   const enterPaperEditMode=event=>{
     if(app.dataset.handwriteOpen!=='true'||paperTapMoved||pinchActive)return;
-    const needsZoom=paperZoom<.99;
+    // The text-fit/1.0x mode is already the intended editing scale. Keep it
+    // stable even if the editor briefly blurred while a toolbar control was used.
+    const needsZoom=paperZoom<.99&&!isPaperTextFitZoom();
     if(paperEditing&&!needsZoom)return;
     const clickedRange=caretRangeFromPoint(event.clientX,event.clientY)?.cloneRange()||null;
     const canvasBounds=paperCanvas.getBoundingClientRect();
@@ -3333,7 +3337,8 @@ body { background:rgb(242,241,246); overflow:hidden }
         {onFrame:recenterPendingEdit}
       );
     }else{
-      settleEditZoom();
+      recenterPendingEdit();
+      positionPaperIndex();
     }
   };
   paperCanvas.addEventListener('pointerdown',event=>{
