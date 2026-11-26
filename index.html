@@ -2031,6 +2031,11 @@ body { background:rgb(242,241,246); overflow:hidden }
   const paperFitButton=handwriteScreen.querySelector('.edit-toolbar-fit');
   // Keep the 1.0x control independent from the edit-only floating toolbar.
   handwriteScreen.append(paperFitButton);
+  // This control changes the paper scale while editing. Prevent it from
+  // taking focus so the editor keeps its caret and the keyboard stays open.
+  paperFitButton.addEventListener('pointerdown',event=>{
+    event.preventDefault();
+  });
   const headingOverlay=handwriteScreen.querySelector('.heading-level-overlay');
   const headingOptions=[...handwriteScreen.querySelectorAll('.heading-level-option')];
   const editToolbar=handwriteScreen.querySelector('.edit-toolbar');
@@ -2509,8 +2514,13 @@ body { background:rgb(242,241,246); overflow:hidden }
     syncEditToolbar();
     positionPaperIndex();
   });
-  paperEditor.addEventListener('blur',()=>{
+  paperEditor.addEventListener('blur',event=>{
     if(app.dataset.handwriteOpen!=='true')return;
+    if(event.relatedTarget===paperFitButton||paperFitButton.contains(event.relatedTarget)){
+      paperEditing=true;
+      requestAnimationFrame(()=>paperEditor.focus({preventScroll:true}));
+      return;
+    }
     paperEditing=false;
     closeEditPopups();
     fit();
