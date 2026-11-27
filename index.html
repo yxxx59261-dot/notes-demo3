@@ -461,7 +461,32 @@ body { background:rgb(242,241,246); overflow:hidden }
 .accessory-progress { height:6px; border-radius:3px; background:#eee; overflow:visible }
 .accessory-progress-fill { display:block; height:100%; border-radius:3px; background:#6bcb75 }
 .accessory-row.is-empty .accessory-progress-fill { width:6px; background:#f4453b }
+.accessory-row--link { width:100%; padding:0; margin:0; background:transparent; border:0; border-bottom:1px solid #e9e9e9; text-align:left; appearance:none; cursor:pointer; -webkit-tap-highlight-color:transparent }
+.accessory-row--link:focus-visible { outline:2px solid #4169e1; outline-offset:-2px; border-radius:8px }
+.accessory-detail-page { position:absolute; inset:0; z-index:75; background:#f5f3f8; color:#4f4f4f; opacity:0; visibility:hidden; pointer-events:none; transform:translateX(24px); transition:opacity 220ms ease,transform 320ms cubic-bezier(.22,.8,.25,1),visibility 0s 320ms }
+#note-1[data-accessory-detail-open="true"] .accessory-detail-page { opacity:1; visibility:visible; pointer-events:auto; transform:translateX(0); transition:opacity 220ms ease,transform 320ms cubic-bezier(.22,.8,.25,1),visibility 0s }
+.accessory-detail-page button { appearance:none; border:0; padding:0; margin:0; background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent }
+.accessory-detail-page button:focus-visible { outline:2px solid #4169e1; outline-offset:3px }
+.accessory-detail-status { position:absolute; left:0; top:0; width:100%; height:44px; color:#000; font:600 15px/20px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif }
+.accessory-detail-time { position:absolute; left:30px; top:16px }
+.accessory-detail-status-icons { position:absolute; right:26px; top:16px; display:flex; align-items:center; gap:5px; height:12px }
+.accessory-detail-status-icons svg { display:block }
+.accessory-detail-back { position:absolute; left:16px; top:56px; width:16px; height:16px; color:#404040 }
+.accessory-detail-buy { position:absolute; left:279px; top:56px; display:flex; align-items:center; gap:2px; color:#4169e1; font:16px/22px "PingFang SC",sans-serif; white-space:nowrap }
+.accessory-detail-illustration { position:absolute; left:86px; top:193px; width:175px; height:132px; object-fit:cover; mix-blend-mode:multiply; pointer-events:none }
+.accessory-detail-title { position:absolute; left:0; right:0; top:325px; color:#3d3d3d; font:16px/22px "PingFang SC",sans-serif; text-align:center }
+.accessory-detail-metric { position:absolute; top:390px; width:140px; text-align:center; font-family:"PingFang SC",sans-serif }
+.accessory-detail-metric--used { left:34px }
+.accessory-detail-metric--remaining { right:34px }
+.accessory-detail-metric-label { display:block; color:#4f4f4f; font-size:12px; line-height:17px }
+.accessory-detail-metric-value { display:block; margin-top:16px; color:#4f4f4f; font-size:24px; line-height:34px; white-space:nowrap }
+.accessory-detail-divider { position:absolute; left:200px; top:407px; width:1px; height:30px; background:#dfdfdf }
+.accessory-detail-copy { position:absolute; left:32px; width:311px; margin:0; color:#9c9c9c; font:13px/20px "PingFang SC",sans-serif; white-space:normal }
+.accessory-detail-copy--intro { top:517px }
+.accessory-detail-copy--advice { top:592px }
+.accessory-detail-reset { position:absolute; left:52px; top:732px; width:272px; height:44px; border-radius:20px !important; background:#fff !important; color:#676767; font:14px/20px "PingFang SC",sans-serif }
 @media(prefers-reduced-motion:reduce) { .accessory-card,.accessory-overlay { transition:none !important } }
+@media(prefers-reduced-motion:reduce) { .accessory-detail-page { transition:none !important } }
 .n1-layer-20 { cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform 180ms ease,filter 180ms ease }
 .n1-layer-20 > img { display:none; }
 .n1-layer-20::before,
@@ -3648,18 +3673,18 @@ body { background:rgb(242,241,246); overflow:hidden }
   accessoryOverlay.inert=true;
   accessoryOverlay.innerHTML=`
     <div class="accessory-card" tabindex="-1">
-      <div class="accessory-row">
+      <button type="button" class="accessory-row accessory-row--link" aria-label="查看X5电磁笔笔芯详情">
         <div class="accessory-row-heading">
-          <img class="accessory-row-icon" src="assets/bi.svg" alt="" aria-hidden="true">
+          <img class="accessory-row-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBmaWxsPSJub25lIiB2ZXJzaW9uPSIxLjEiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48ZGVmcz48Y2xpcFBhdGggaWQ9Im1hc3Rlcl9zdmcwXzEwMDBfNjYxMjkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcng9IjAiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjbWFzdGVyX3N2ZzBfMTAwMF82NjEyOSkiPjxwYXRoIGQ9Ik0xNy4zNDU5NDc2MjY5MzAyMzYsMi40ODQ4NDQzMjY5MzAyMzdDMTYuNzc5NDAzNjI2OTMwMjM2LDEuOTQxODE5ODc2OTMwMjM2OCwxNi4xNTUxNjQ2MjY5MzAyMzcsMS42NjY2NjY2MjY5MzAyMzY4LDE1LjQ4ODMwNjYyNjkzMDIzNywxLjY2NjY2NjYyNjkzMDIzNjhDMTQuNDQ1NjU2NjI2OTMwMjM3LDEuNjY2NjY2NjI2OTMwMjM2OCwxMy42ODQ3MjA2MjY5MzAyMzYsMi4zNDA3NjYwNzY5MzAyMzY3LDEzLjQ3NjgxNDYyNjkzMDIzNywyLjU0NzI2MTA1NjkzMDIzNjdDMTMuMTgzNjY2NjI2OTMwMjM2LDIuODM3NDk4MzI2OTMwMjM2NywzLjE5MjczOTcyNjkzMDIzNywxMi44Mzk3NTk2MjY5MzAyMzcsMy4xOTI3Mzk3MjY5MzAyMzcsMTIuODM5NzU5NjI2OTMwMjM3QzMuMTI3MjI0NzI2OTMwMjM3LDEyLjkwNTU4MDYyNjkzMDIzNiwzLjA3OTkzODAyNjkzMDIzNywxMi45ODczMTI2MjY5MzAyMzcsMy4wNTU1MjE4MjY5MzAyMzcsMTMuMDc2OTQxNjI2OTMwMjM3QzIuODMwNDYzNDI2OTMwMjM3LDEzLjkxMDIwNTYyNjkzMDIzNywxLjcwMTUzMzQyODkzMDIzNjgsMTcuNjA3MzQ3NjI2OTMwMjM1LDEuNjkwMDk4NTU1OTMwMjM2OCwxNy42NDQ3OTc2MjY5MzAyMzRDMS42MzIyMjkzNTc5MzAyMzY3LDE3LjgzNDEwNjYyNjkzMDIzNiwxLjY4MzM5NTgzNDkzMDIzNywxOC4wMzk5MTk2MjY5MzAyMzUsMS44MjMxNTg0NTY5MzAyMzY4LDE4LjE4MDAxOTYyNjkzMDIzNUMxLjk2MjQ1MDY1NjkzMDIzNywxOC4zMTg5ODU2MjY5MzAyMzUsMi4xNjc2ODA1NTY5MzAyMzcsMTguMzY4MzcyNjI2OTMwMjQsMi4zNTQ4NzgyNDY5MzAyMzcsMTguMzA3OTc0NjI2OTMwMjM1QzIuMzkyODIxMDc2OTMwMjM3LDE4LjI5NTQ5MDYyNjkzMDI0LDYuMjA2MzM4NTI2OTMwMjM3LDE3LjA2MjI0MjYyNjkzMDIzNSw2LjgzNDIxNTMyNjkzMDIzNywxNi44NzQ0NzM2MjY5MzAyNEM2LjkxNzA0NzEyNjkzMDIzNywxNi44NDk1NTM2MjY5MzAyMzgsNi45OTI1MjgxMjY5MzAyMzcsMTYuODA0NzMyNjI2OTMwMjQsNy4wNTQwNzU4MjY5MzAyMzYsMTYuNzQzOTE4NjI2OTMwMjRDNy40NTA2NTY1MjY5MzAyMzcsMTYuMzUxNzM0NjI2OTMwMjM4LDE2Ljc2OTAwODYyNjkzMDIzNyw3LjEzMDIwMDAyNjkzMDIzNywxNy4zODc1Mjc2MjY5MzAyMzYsNi40OTA5NTAyMjY5MzAyMzdDMTguMDI3MzU5NjI2OTMwMjM4LDUuODMxNDEzODI2OTMwMjM3LDE4LjM0NTQ1NzYyNjkzMDIzNyw1LjE0Mzc5MDgyNjkzMDIzNywxOC4zMzI5Nzk2MjY5MzAyMzYsNC40NDk0MDYyMjY5MzAyMzdDMTguMzE5OTg2NjI2OTMwMjM4LDMuNzYzMzQzNzI2OTMwMjM2OCwxNy45ODc4NTY2MjY5MzAyNCwzLjEwMjc2NzkyNjkzMDIzNjYsMTcuMzQ0OTA2NjI2OTMwMjQsMi40ODUzNjM2MDY5MzAyMzY3TDE3LjM0NTk0NzYyNjkzMDIzNiwyLjQ4NDg0NDMyNjkzMDIzN1pNMTMuMzExMDA4NjI2OTMwMjM3LDQuMjEwNjYzOTI2OTMwMjM3QzEzLjU3NTU2OTYyNjkzMDIzNyw0LjI3NDY0MDcyNjkzMDIzNywxNC4yMDAzMjg2MjY5MzAyMzYsNC40ODQ3NzY4MjY5MzAyMzYsMTQuODM4MDgwNjI2OTMwMjM3LDUuMTI4NzA4MjI2OTMwMjM3QzE1LjQ4MjU4OTYyNjkzMDIzNyw1Ljc3OTQwMTkyNjkzMDIzNywxNS42NTY3MDk2MjY5MzAyMzcsNi41MjMxOTk3MjY5MzAyMzcsMTUuNjg5NDU1NjI2OTMwMjM2LDYuNjkyNzY0NDI2OTMwMjM2QzEyLjgyNDY3MTYyNjkzMDIzNiw5LjUzODQ2NTEyNjkzMDIzNyw5Ljk1NzEyNDMyNjkzMDIzNiwxMi4zODExOTU2MjY5MzAyMzcsNy4wODY4MjA3MjY5MzAyMzcsMTUuMjIwOTUzNjI2OTMwMjM3QzYuODc1MjQ3MTI2OTMwMjM3LDE0LjcyNTYzNTYyNjkzMDIzNiw2LjU3MjExMDcyNjkzMDIzNywxNC4yNzQ3NTI2MjY5MzAyMzcsNi4xOTMzNDQ3MjY5MzAyMzcsMTMuODkxOTk5NjI2OTMwMjM2QzUuNzU5OTc5MzI2OTMwMjM3LDEzLjQ0ODgzNTYyNjkzMDIzNiw1LjI0MTYzMTEyNjkzMDIzNywxMy4wOTc4MzI2MjY5MzAyMzYsNC42NjkzOTI3MjY5MzAyMzcsMTIuODYwMDQ0NjI2OTMwMjM2QzYuNTA0NjgzNjI2OTMwMjM3LDExLjAyMjkxODMyNjkzMDIzNiwxMS4yOTc5NTgwMjY5MzAyMzcsNi4yMjQ2NDAwMjY5MzAyMzcsMTMuMzEwNDkwNjI2OTMwMjM3LDQuMjExMTgzOTI2OTMwMjM3TDEzLjMxMTAwODYyNjkzMDIzNyw0LjIxMDY2MzkyNjkzMDIzN1pNMy45NjQwNzE0MjY5MzAyMzY2LDEzLjczNzUxODYyNjkzMDIzN0M0LjI0OTk0MjIyNjkzMDIzNywxMy44MTM0NTg2MjY5MzAyMzYsNC44NDI5OTQ1MjY5MzAyMzcsMTQuMDMzOTk3NjI2OTMwMjM3LDUuNDQ3NDgxMjI2OTMwMjM2LDE0LjY0MzU5OTYyNjkzMDIzOEM1LjgwODUxNDIyNjkzMDIzNywxNS4wMTAxMDU2MjY5MzAyMzcsNi4wNzczNDE2MjY5MzAyMzcsMTUuNDU3MjI0NjI2OTMwMjM4LDYuMjMxODA3MzI2OTMwMjM2NSwxNS45NDgxMDc2MjY5MzAyMzZDNS41MDkzMzM1MjY5MzAyMzcsMTYuMTgwNjA4NjI2OTMwMjM3LDMuOTI3MTY4NTI2OTMwMjM2OCwxNi43MjY3NTM2MjY5MzAyMzYsMi45MjI0NjIwMjY5MzAyMzcsMTcuMDUxMzIxNjI2OTMwMjRDMy4yMjAyODc0MjY5MzAyMzcsMTYuMDcwMzM5NjI2OTMwMjM1LDMuNzIzNDIwNTI2OTMwMjM2NywxNC41NDMyMTM2MjY5MzAyMzcsMy45NjQwNzE0MjY5MzAyMzY2LDEzLjczNzUxODYyNjkzMDIzN1pNMTYuNjMzODY5NjI2OTMwMjM1LDUuNzQ3MTUyNDI2OTMwMjM3TDE2LjUzNTExMjYyNjkzMDIzNiw1Ljg0NzAxOTMyNjkzMDIzN0MxNi4zMjIyNDk2MjY5MzAyMzcsNS4yOTY0NzM4MjY5MzAyMzcsMTUuOTk4Mjc3NjI2OTMwMjM3LDQuNzk1NzQwNzI2OTMwMjM3LDE1LjU4MzQyNTYyNjkzMDIzOCw0LjM3NjA2ODAyNjkzMDIzN0MxNS4xNzEwNTg2MjY5MzAyMzYsMy45NTQ2MDI2MjY5MzAyMzcsMTQuNjgxNzk4NjI2OTMwMjM2LDMuNjE2MTI5MzI2OTMwMjM2NiwxNC4xNDIxMTU2MjY5MzAyMzYsMy4zNzg5NjI2MjY5MzAyMzdMMTQuMjE1NDAyNjI2OTMwMjM3LDMuMzA2MTQzMTI2OTMwMjM2NkMxNC4yNzQ2NTM2MjY5MzAyMzYsMy4yNDczNjc2MjY5MzAyMzY3LDE0LjgxNDY5MTYyNjkzMDIzNywyLjczMDg3MDAyNjkzMDIzNywxNS40ODcyNjc2MjY5MzAyMzcsMi43MzA4NzAwMjY5MzAyMzdDMTUuODc0NDkyNjI2OTMwMjM4LDIuNzMwODcwMDI2OTMwMjM3LDE2LjI1NDk2MDYyNjkzMDIzNCwyLjkwNzcxNzEyNjkzMDIzNywxNi42MTc3NTc2MjY5MzAyMzUsMy4yNTYyMDk4MjY5MzAyMzdDMTcuMDQ4MTIyNjI2OTMwMjM3LDMuNjY5NzIwMDI2OTMwMjM3LDE3LjI3MDU4MzYyNjkzMDIzNiw0LjA3NzUwODUyNjkzMDIzNiwxNy4yNzc4NTg2MjY5MzAyNCw0LjQ2ODY1MjYyNjkzMDIzNkMxNy4yODUxMzM2MjY5MzAyNCw0Ljg2ODExODkyNjkzMDIzNjUsMTcuMDY3ODczNjI2OTMwMjM2LDUuMjk4MjczNDI2OTMwMjM3LDE2LjYzMzM0OTYyNjkzMDIzNyw1Ljc0NzE1MjkyNjkzMDIzNkwxNi42MzM4Njk2MjY5MzAyMzUsNS43NDcxNTI0MjY5MzAyMzdaIiBmaWxsPSIjNDA0MDQwIiBmaWxsLW9wYWNpdHk9IjEiLz48L2c+PC9zdmc+" alt="" aria-hidden="true">
           <span class="accessory-row-name">X5电磁笔笔芯</span>
           <svg class="accessory-row-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="accessory-row-detail">预估还可使用100小时</div>
         <div class="accessory-progress"><span class="accessory-progress-fill" style="width:82%"></span></div>
-      </div>
+      </button>
       <div class="accessory-row is-empty">
         <div class="accessory-row-heading">
-          <img class="accessory-row-icon" src="assets/bi.svg" alt="" aria-hidden="true">
+          <img class="accessory-row-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBmaWxsPSJub25lIiB2ZXJzaW9uPSIxLjEiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48ZGVmcz48Y2xpcFBhdGggaWQ9Im1hc3Rlcl9zdmcwXzEwMDBfNjYxMjkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcng9IjAiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjbWFzdGVyX3N2ZzBfMTAwMF82NjEyOSkiPjxwYXRoIGQ9Ik0xNy4zNDU5NDc2MjY5MzAyMzYsMi40ODQ4NDQzMjY5MzAyMzdDMTYuNzc5NDAzNjI2OTMwMjM2LDEuOTQxODE5ODc2OTMwMjM2OCwxNi4xNTUxNjQ2MjY5MzAyMzcsMS42NjY2NjY2MjY5MzAyMzY4LDE1LjQ4ODMwNjYyNjkzMDIzNywxLjY2NjY2NjYyNjkzMDIzNjhDMTQuNDQ1NjU2NjI2OTMwMjM3LDEuNjY2NjY2NjI2OTMwMjM2OCwxMy42ODQ3MjA2MjY5MzAyMzYsMi4zNDA3NjYwNzY5MzAyMzY3LDEzLjQ3NjgxNDYyNjkzMDIzNywyLjU0NzI2MTA1NjkzMDIzNjdDMTMuMTgzNjY2NjI2OTMwMjM2LDIuODM3NDk4MzI2OTMwMjM2NywzLjE5MjczOTcyNjkzMDIzNywxMi44Mzk3NTk2MjY5MzAyMzcsMy4xOTI3Mzk3MjY5MzAyMzcsMTIuODM5NzU5NjI2OTMwMjM3QzMuMTI3MjI0NzI2OTMwMjM3LDEyLjkwNTU4MDYyNjkzMDIzNiwzLjA3OTkzODAyNjkzMDIzNywxMi45ODczMTI2MjY5MzAyMzcsMy4wNTU1MjE4MjY5MzAyMzcsMTMuMDc2OTQxNjI2OTMwMjM3QzIuODMwNDYzNDI2OTMwMjM3LDEzLjkxMDIwNTYyNjkzMDIzNywxLjcwMTUzMzQyODkzMDIzNjgsMTcuNjA3MzQ3NjI2OTMwMjM1LDEuNjkwMDk4NTU1OTMwMjM2OCwxNy42NDQ3OTc2MjY5MzAyMzRDMS42MzIyMjkzNTc5MzAyMzY3LDE3LjgzNDEwNjYyNjkzMDIzNiwxLjY4MzM5NTgzNDkzMDIzNywxOC4wMzk5MTk2MjY5MzAyMzUsMS44MjMxNTg0NTY5MzAyMzY4LDE4LjE4MDAxOTYyNjkzMDIzNUMxLjk2MjQ1MDY1NjkzMDIzNywxOC4zMTg5ODU2MjY5MzAyMzUsMi4xNjc2ODA1NTY5MzAyMzcsMTguMzY4MzcyNjI2OTMwMjQsMi4zNTQ4NzgyNDY5MzAyMzcsMTguMzA3OTc0NjI2OTMwMjM1QzIuMzkyODIxMDc2OTMwMjM3LDE4LjI5NTQ5MDYyNjkzMDI0LDYuMjA2MzM4NTI2OTMwMjM3LDE3LjA2MjI0MjYyNjkzMDIzNSw2LjgzNDIxNTMyNjkzMDIzNywxNi44NzQ0NzM2MjY5MzAyNEM2LjkxNzA0NzEyNjkzMDIzNywxNi44NDk1NTM2MjY5MzAyMzgsNi45OTI1MjgxMjY5MzAyMzcsMTYuODA0NzMyNjI2OTMwMjQsNy4wNTQwNzU4MjY5MzAyMzYsMTYuNzQzOTE4NjI2OTMwMjRDNy40NTA2NTY1MjY5MzAyMzcsMTYuMzUxNzM0NjI2OTMwMjM4LDE2Ljc2OTAwODYyNjkzMDIzNyw3LjEzMDIwMDAyNjkzMDIzNywxNy4zODc1Mjc2MjY5MzAyMzYsNi40OTA5NTAyMjY5MzAyMzdDMTguMDI3MzU5NjI2OTMwMjM4LDUuODMxNDEzODI2OTMwMjM3LDE4LjM0NTQ1NzYyNjkzMDIzNyw1LjE0Mzc5MDgyNjkzMDIzNywxOC4zMzI5Nzk2MjY5MzAyMzYsNC40NDk0MDYyMjY5MzAyMzdDMTguMzE5OTg2NjI2OTMwMjM4LDMuNzYzMzQzNzI2OTMwMjM2OCwxNy45ODc4NTY2MjY5MzAyNCwzLjEwMjc2NzkyNjkzMDIzNjYsMTcuMzQ0OTA2NjI2OTMwMjQsMi40ODUzNjM2MDY5MzAyMzY3TDE3LjM0NTk0NzYyNjkzMDIzNiwyLjQ4NDg0NDMyNjkzMDIzN1pNMTMuMzExMDA4NjI2OTMwMjM3LDQuMjEwNjYzOTI2OTMwMjM3QzEzLjU3NTU2OTYyNjkzMDIzNyw0LjI3NDY0MDcyNjkzMDIzNywxNC4yMDAzMjg2MjY5MzAyMzYsNC40ODQ3NzY4MjY5MzAyMzYsMTQuODM4MDgwNjI2OTMwMjM3LDUuMTI4NzA4MjI2OTMwMjM3QzE1LjQ4MjU4OTYyNjkzMDIzNyw1Ljc3OTQwMTkyNjkzMDIzNywxNS42NTY3MDk2MjY5MzAyMzcsNi41MjMxOTk3MjY5MzAyMzcsMTUuNjg5NDU1NjI2OTMwMjM2LDYuNjkyNzY0NDI2OTMwMjM2QzEyLjgyNDY3MTYyNjkzMDIzNiw5LjUzODQ2NTEyNjkzMDIzNyw5Ljk1NzEyNDMyNjkzMDIzNiwxMi4zODExOTU2MjY5MzAyMzcsNy4wODY4MjA3MjY5MzAyMzcsMTUuMjIwOTUzNjI2OTMwMjM3QzYuODc1MjQ3MTI2OTMwMjM3LDE0LjcyNTYzNTYyNjkzMDIzNiw2LjU3MjExMDcyNjkzMDIzNywxNC4yNzQ3NTI2MjY5MzAyMzcsNi4xOTMzNDQ3MjY5MzAyMzcsMTMuODkxOTk5NjI2OTMwMjM2QzUuNzU5OTc5MzI2OTMwMjM3LDEzLjQ0ODgzNTYyNjkzMDIzNiw1LjI0MTYzMTEyNjkzMDIzNywxMy4wOTc4MzI2MjY5MzAyMzYsNC42NjkzOTI3MjY5MzAyMzcsMTIuODYwMDQ0NjI2OTMwMjM2QzYuNTA0NjgzNjI2OTMwMjM3LDExLjAyMjkxODMyNjkzMDIzNiwxMS4yOTc5NTgwMjY5MzAyMzcsNi4yMjQ2NDAwMjY5MzAyMzcsMTMuMzEwNDkwNjI2OTMwMjM3LDQuMjExMTgzOTI2OTMwMjM3TDEzLjMxMTAwODYyNjkzMDIzNyw0LjIxMDY2MzkyNjkzMDIzN1pNMy45NjQwNzE0MjY5MzAyMzY2LDEzLjczNzUxODYyNjkzMDIzN0M0LjI0OTk0MjIyNjkzMDIzNywxMy44MTM0NTg2MjY5MzAyMzYsNC44NDI5OTQ1MjY5MzAyMzcsMTQuMDMzOTk3NjI2OTMwMjM3LDUuNDQ3NDgxMjI2OTMwMjM2LDE0LjY0MzU5OTYyNjkzMDIzOEM1LjgwODUxNDIyNjkzMDIzNywxNS4wMTAxMDU2MjY5MzAyMzcsNi4wNzczNDE2MjY5MzAyMzcsMTUuNDU3MjI0NjI2OTMwMjM4LDYuMjMxODA3MzI2OTMwMjM2NSwxNS45NDgxMDc2MjY5MzAyMzZDNS41MDkzMzM1MjY5MzAyMzcsMTYuMTgwNjA4NjI2OTMwMjM3LDMuOTI3MTY4NTI2OTMwMjM2OCwxNi43MjY3NTM2MjY5MzAyMzYsMi45MjI0NjIwMjY5MzAyMzcsMTcuMDUxMzIxNjI2OTMwMjRDMy4yMjAyODc0MjY5MzAyMzcsMTYuMDcwMzM5NjI2OTMwMjM1LDMuNzIzNDIwNTI2OTMwMjM2NywxNC41NDMyMTM2MjY5MzAyMzcsMy45NjQwNzE0MjY5MzAyMzY2LDEzLjczNzUxODYyNjkzMDIzN1pNMTYuNjMzODY5NjI2OTMwMjM1LDUuNzQ3MTUyNDI2OTMwMjM3TDE2LjUzNTExMjYyNjkzMDIzNiw1Ljg0NzAxOTMyNjkzMDIzN0MxNi4zMjIyNDk2MjY5MzAyMzcsNS4yOTY0NzM4MjY5MzAyMzcsMTUuOTk4Mjc3NjI2OTMwMjM3LDQuNzk1NzQwNzI2OTMwMjM3LDE1LjU4MzQyNTYyNjkzMDIzOCw0LjM3NjA2ODAyNjkzMDIzN0MxNS4xNzEwNTg2MjY5MzAyMzYsMy45NTQ2MDI2MjY5MzAyMzcsMTQuNjgxNzk4NjI2OTMwMjM2LDMuNjE2MTI5MzI2OTMwMjM2NiwxNC4xNDIxMTU2MjY5MzAyMzYsMy4zNzg5NjI2MjY5MzAyMzdMMTQuMjE1NDAyNjI2OTMwMjM3LDMuMzA2MTQzMTI2OTMwMjM2NkMxNC4yNzQ2NTM2MjY5MzAyMzYsMy4yNDczNjc2MjY5MzAyMzY3LDE0LjgxNDY5MTYyNjkzMDIzNywyLjczMDg3MDAyNjkzMDIzNywxNS40ODcyNjc2MjY5MzAyMzcsMi43MzA4NzAwMjY5MzAyMzdDMTUuODc0NDkyNjI2OTMwMjM4LDIuNzMwODcwMDI2OTMwMjM3LDE2LjI1NDk2MDYyNjkzMDIzNCwyLjkwNzcxNzEyNjkzMDIzNywxNi42MTc3NTc2MjY5MzAyMzUsMy4yNTYyMDk4MjY5MzAyMzdDMTcuMDQ4MTIyNjI2OTMwMjM3LDMuNjY5NzIwMDI2OTMwMjM3LDE3LjI3MDU4MzYyNjkzMDIzNiw0LjA3NzUwODUyNjkzMDIzNiwxNy4yNzc4NTg2MjY5MzAyNCw0LjQ2ODY1MjYyNjkzMDIzNkMxNy4yODUxMzM2MjY5MzAyNCw0Ljg2ODExODkyNjkzMDIzNjUsMTcuMDY3ODczNjI2OTMwMjM2LDUuMjk4MjczNDI2OTMwMjM3LDE2LjYzMzM0OTYyNjkzMDIzNyw1Ljc0NzE1MjkyNjkzMDIzNkwxNi42MzM4Njk2MjY5MzAyMzUsNS43NDcxNTI0MjY5MzAyMzdaIiBmaWxsPSIjNDA0MDQwIiBmaWxsLW9wYWNpdHk9IjEiLz48L2c+PC9zdmc+" alt="" aria-hidden="true">
           <span class="accessory-row-name">A3电磁笔笔芯</span>
           <svg class="accessory-row-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
@@ -3668,7 +3693,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       </div>
       <div class="accessory-row">
         <div class="accessory-row-heading">
-          <img class="accessory-row-icon" src="assets/pi.svg" alt="" aria-hidden="true">
+          <img class="accessory-row-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBmaWxsPSJub25lIiB2ZXJzaW9uPSIxLjEiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48ZGVmcz48Y2xpcFBhdGggaWQ9Im1hc3Rlcl9zdmcwXzEwMDBfNjYwNDAiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcng9IjAiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjbWFzdGVyX3N2ZzBfMTAwMF82NjA0MCkiPjxwYXRoIGQ9Ik0zLjMzMzMzMzI1Mzg2MDQ3MzYsMi41ODMzMzMzMTY5MzAyMzdMMy4zMzMzMzMyNTM4NjA0NzM2LDE3LjQxNjY2NzYyNjkzMDIzNEMzLjMzMzMzMzI1Mzg2MDQ3MzYsMTcuOTE2NjY2NjI2OTMwMjM3LDMuNzMyNTM0NzkzODYwNDczNiwxOC4zMzMzMzI2MjY5MzAyMzYsNC4yMTE1NzY3MDM4NjA0NzQsMTguMzMzMzMyNjI2OTMwMjM2TDQuNTgzMzMzMjUzODYwNDc0LDE4LjMzMzMzMjYyNjkzMDIzNkw0LjU4MzMzMzI1Mzg2MDQ3NCwxLjY2NjY2NjYyNjkzMDIzNjhMNC4yMTE1NzY3MDM4NjA0NzQsMS42NjY2NjY2MjY5MzAyMzY4QzMuNzMyNTM0NzkzODYwNDczNiwxLjY2NjY2NjYyNjkzMDIzNjgsMy4zMzMzMzMyNTM4NjA0NzM2LDIuMDgzMzMzMjI2OTMwMjM3LDMuMzMzMzMzMjUzODYwNDczNiwyLjU4MzMzMzMxNjkzMDIzN1oiIGZpbGw9IiM0MDQwNDAiIGZpbGwtb3BhY2l0eT0iMSIvPjxwYXRoIGQ9Ik02LjU4MzMzMzAxNTQ0MTg5NDUgMi40MTY2NjY2MjY5MzAyMzdDNi41ODMzMzMwMTU0NDE4OTQ1IDIuNDE2NjY2NjI2OTMwMjM3IDYuNTgzMzMzMDE1NDQxODk0NSAyLjQxNjY2NjYyNjkzMDIzNyA2LjU4MzMzMzAxNTQ0MTg5NDUgMi40MTY2NjY2MjY5MzAyMzdMMTQuNzQ5OTk5MDQ2MzI1Njg0IDIuNDE2NjY2NjI2OTMwMjM3QzE1Ljg1NDU2ODU0NTk4NzI3IDIuNDE2NjY2NjI2OTMwMjM3IDE2Ljc0OTk5OTA0NjMyNTY4NCAzLjMxMjA5NzEyNzI2ODY1MDQgMTYuNzQ5OTk5MDQ2MzI1Njg0IDQuNDE2NjY2NjI2OTMwMjM3TDE2Ljc0OTk5OTA0NjMyNTY4NCAxNS41ODMzMzI2NTc4MTQwMjZDMTYuNzQ5OTk5MDQ2MzI1Njg0IDE2LjY4NzkwMjE1NzQ3NTYxMiAxNS44NTQ1Njg1NDU5ODcyNyAxNy41ODMzMzI2NTc4MTQwMjYgMTQuNzQ5OTk5MDQ2MzI1Njg0IDE3LjU4MzMzMjY1NzgxNDAyNkw2LjU4MzMzMzAxNTQ0MTg5NDUgMTcuNTgzMzMyNjU3ODE0MDI2QzYuNTgzMzMzMDE1NDQxODk0NSAxNy41ODMzMzI2NTc4MTQwMjYgNi41ODMzMzMwMTU0NDE4OTQ1IDE3LjU4MzMzMjY1NzgxNDAyNiA2LjU4MzMzMzAxNTQ0MTg5NDUgMTcuNTgzMzMyNjU3ODE0MDI2WiIgZmlsbC1vcGFjaXR5PSIwIiBzdHJva2Utb3BhY2l0eT0iMSIgc3Ryb2tlPSIjNDA0MDQwIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvZz48L3N2Zz4=" alt="" aria-hidden="true">
           <span class="accessory-row-name">A3办公本皮套</span>
           <svg class="accessory-row-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
@@ -3678,9 +3703,36 @@ body { background:rgb(242,241,246); overflow:hidden }
     </div>`;
   app.append(accessoryOverlay);
   const accessoryCard=accessoryOverlay.querySelector('.accessory-card');
+  const accessoryDetailPage=document.createElement('section');
+  accessoryDetailPage.className='accessory-detail-page';
+  accessoryDetailPage.setAttribute('role','dialog');
+  accessoryDetailPage.setAttribute('aria-label','X5电磁笔笔芯详情');
+  accessoryDetailPage.setAttribute('aria-hidden','true');
+  accessoryDetailPage.inert=true;
+  accessoryDetailPage.innerHTML=`
+    <div class="accessory-detail-status" aria-hidden="true">
+      <span class="accessory-detail-time">12:00</span>
+      <span class="accessory-detail-status-icons">
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="6" width="3" height="6" rx="1" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 4.2a10 10 0 0 1 14 0M3.5 7a6.4 6.4 0 0 1 9 0M6.2 9.6a2.6 2.6 0 0 1 3.6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11" r="1" fill="currentColor"/></svg>
+        <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2" stroke="currentColor"/><rect x="3" y="3" width="16" height="6" rx="1" fill="currentColor"/><path d="M22 4v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+    </div>
+    <button type="button" class="accessory-detail-back" aria-label="返回配件耗材"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m10 2-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button type="button" class="accessory-detail-buy" aria-label="前往购买"><span>前往购买</span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 2 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <img class="accessory-detail-illustration" src="assets/x5-accessory-illustration.png" alt="X5电磁笔笔芯示意图" draggable="false">
+    <div class="accessory-detail-title">X5电磁笔笔芯</div>
+    <div class="accessory-detail-metric accessory-detail-metric--used"><span class="accessory-detail-metric-label">已书写</span><span class="accessory-detail-metric-value">120小时</span></div>
+    <div class="accessory-detail-divider" aria-hidden="true"></div>
+    <div class="accessory-detail-metric accessory-detail-metric--remaining"><span class="accessory-detail-metric-label">剩余</span><span class="accessory-detail-metric-value">0小时</span></div>
+    <p class="accessory-detail-copy accessory-detail-copy--intro">电磁笔笔尖由耐磨树脂材质组成，可稳定识别书写轨迹。随着书写时长增加，笔尖会逐步磨损，降低圈选、书写识别精度。</p>
+    <p class="accessory-detail-copy accessory-detail-copy--advice">建议累计使用120小时左右或笔尖磨损较重的时候更换新笔尖。</p>
+    <button type="button" class="accessory-detail-reset">已更换（重置时长）</button>`;
+  app.append(accessoryDetailPage);
+  const accessoryDetailBack=accessoryDetailPage.querySelector('.accessory-detail-back');
   const choices={field:'modified',direction:'near'};
   let selectedType='全部';
-  let isOpen=false,isSortOpen=false,isFilterOpen=false,isAccessoryOpen=false,resetTimer;
+  let isOpen=false,isSortOpen=false,isFilterOpen=false,isAccessoryOpen=false,isAccessoryDetailOpen=false,resetTimer;
   const focusItems=()=>isAccessoryOpen?[accessoryCard]:isFilterOpen?[filterBack,...filterItems]:isSortOpen?[sortTrigger,...sortItems]:mainItems;
   function setAccessory(next,{focus=false,restore=false}={}){
     if(next&&isSortOpen)setSort(false);
@@ -3728,6 +3780,15 @@ body { background:rgb(242,241,246); overflow:hidden }
     if(next&&focus)mainItems[0].focus({preventScroll:true});
     if(!next){setAccessory(false);resetTimer=setTimeout(()=>setSort(false),230);if(restore)trigger.focus({preventScroll:true})}
   }
+  function setAccessoryDetail(next){
+    if(next){setAccessory(false);setOpen(false)}
+    isAccessoryDetailOpen=next;
+    app.dataset.accessoryDetailOpen=String(next);
+    accessoryDetailPage.setAttribute('aria-hidden',String(!next));
+    accessoryDetailPage.inert=!next;
+    if(next)accessoryDetailBack.focus({preventScroll:true});
+    else{setOpen(true);setAccessory(true,{focus:true})}
+  }
   trigger.addEventListener('click',()=>setOpen(!isOpen,{focus:!isOpen}));
   trigger.addEventListener('keydown',e=>{
     if(e.key==='ArrowDown'){e.preventDefault();e.stopPropagation();setOpen(true,{focus:true})}
@@ -3735,6 +3796,8 @@ body { background:rgb(242,241,246); overflow:hidden }
   sortTrigger.addEventListener('click',()=>setSort(!isSortOpen));
   typeTrigger.addEventListener('click',()=>setFilter(true,{focus:true}));
   accessoryTrigger.addEventListener('click',()=>setAccessory(!isAccessoryOpen,{focus:!isAccessoryOpen}));
+  accessoryCard.querySelector('.accessory-row--link').addEventListener('click',()=>setAccessoryDetail(true));
+  accessoryDetailBack.addEventListener('click',()=>setAccessoryDetail(false));
   filterBack.addEventListener('click',()=>setFilter(false,{restore:true}));
   accessoryOverlay.addEventListener('click',event=>{ if(event.target===accessoryOverlay)setAccessory(false,{restore:true}); });
   const chooseFilterItem=(item)=>{
@@ -3825,6 +3888,10 @@ body { background:rgb(242,241,246); overflow:hidden }
   dismiss.addEventListener('pointerdown',event=>{ event.stopPropagation(); });
   dismiss.addEventListener('click',event=>{ event.preventDefault(); event.stopPropagation(); setOpen(false,{restore:document.activeElement!==document.body}); });
   document.addEventListener('keydown',e=>{
+    if(isAccessoryDetailOpen){
+      if(e.key==='Escape'||e.key==='ArrowLeft'){e.preventDefault();setAccessoryDetail(false)}
+      return;
+    }
     if(!isOpen)return;
     if(isAccessoryOpen&&(e.key==='Escape'||e.key==='ArrowLeft')){
       e.preventDefault();setAccessory(false,{restore:true});return;
