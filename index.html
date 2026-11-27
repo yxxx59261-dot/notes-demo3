@@ -3782,12 +3782,25 @@ body { background:rgb(242,241,246); overflow:hidden }
     <div class="accessory-detail-metric accessory-detail-metric--remaining"><span class="accessory-detail-metric-label">剩余</span><span class="accessory-detail-metric-value">0小时</span></div>
     <p class="accessory-detail-copy accessory-detail-copy--intro">电磁笔笔尖由耐磨树脂材质组成，可稳定识别书写轨迹。随着书写时长增加，笔尖会逐步磨损，降低圈选、书写识别精度。</p>
     <p class="accessory-detail-copy accessory-detail-copy--advice">建议累计使用120小时左右或笔尖磨损较重的时候更换新笔尖。</p>
-    <button type="button" class="accessory-detail-reset">已更换（重置时长）</button>`;
+    <button type="button" class="accessory-detail-reset">已更换（重置时长）</button>
+    <div class="accessory-reset-confirm" data-open="false" aria-hidden="true">
+      <section class="accessory-reset-dialog" role="alertdialog" aria-modal="true" aria-labelledby="accessory-reset-title" aria-describedby="accessory-reset-copy">
+        <div class="accessory-reset-dialog-title" id="accessory-reset-title">提示</div>
+        <p class="accessory-reset-dialog-copy" id="accessory-reset-copy">确定已更换新笔芯？</p>
+        <div class="accessory-reset-dialog-actions">
+          <button type="button" class="accessory-reset-cancel">取消</button>
+          <button type="button" class="accessory-reset-accept">确认</button>
+        </div>
+      </section>
+    </div>`;
   app.append(accessoryDetailPage);
   const accessoryDetailBack=accessoryDetailPage.querySelector('.accessory-detail-back');
   const accessoryUsedValue=accessoryDetailPage.querySelector('.accessory-detail-metric--used .accessory-detail-metric-value');
   const accessoryRemainingValue=accessoryDetailPage.querySelector('.accessory-detail-metric--remaining .accessory-detail-metric-value');
   const accessoryResetButton=accessoryDetailPage.querySelector('.accessory-detail-reset');
+  const accessoryResetConfirm=accessoryDetailPage.querySelector('.accessory-reset-confirm');
+  const accessoryResetCancel=accessoryDetailPage.querySelector('.accessory-reset-cancel');
+  const accessoryResetAccept=accessoryDetailPage.querySelector('.accessory-reset-accept');
   const accessoryTriggerHint=accessoryTrigger.querySelector('.accessory-trigger-hint');
   const accessoryRowDetail=accessoryCard.querySelector('.accessory-row--link .accessory-row-detail');
   const accessoryLinkedRow=accessoryCard.querySelector('.accessory-row--link');
@@ -3798,7 +3811,20 @@ body { background:rgb(242,241,246); overflow:hidden }
     moreTrigger.setAttribute('aria-label',available?'有配件需要换新，更多笔记选项':'更多笔记选项');
   };
   syncAccessoryUpdateHint();
+  const closeAccessoryResetConfirm=()=>{
+    accessoryResetConfirm.dataset.open='false';
+    accessoryResetConfirm.setAttribute('aria-hidden','true');
+    accessoryResetButton.focus({preventScroll:true});
+  };
   accessoryResetButton.addEventListener('click',()=>{
+    if(accessoryResetButton.disabled)return;
+    accessoryResetConfirm.dataset.open='true';
+    accessoryResetConfirm.setAttribute('aria-hidden','false');
+    accessoryResetCancel.focus({preventScroll:true});
+  });
+  accessoryResetCancel.addEventListener('click',closeAccessoryResetConfirm);
+  accessoryResetConfirm.addEventListener('click',event=>{if(event.target===accessoryResetConfirm)closeAccessoryResetConfirm()});
+  accessoryResetAccept.addEventListener('click',()=>{
     accessoryUsedValue.textContent='0小时';
     accessoryRemainingValue.textContent='120小时';
     accessoryRowDetail.textContent='预估还可使用120小时';
@@ -3808,6 +3834,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     accessoryTrigger.dataset.reset='true';
     accessoryResetButton.textContent='已重置';
     accessoryResetButton.disabled=true;
+    closeAccessoryResetConfirm();
   });
   const choices={field:'modified',direction:'near'};
   let selectedType='全部';
