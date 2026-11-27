@@ -3794,7 +3794,7 @@ body { background:rgb(242,241,246); overflow:hidden }
   const accessoryCard=accessoryOverlay.querySelector('.accessory-card');
   accessoryCard.querySelectorAll('.accessory-row-icon').forEach(icon=>{
     const svg=atob(icon.src.split(',')[1]);
-    icon.src='data:image/svg+xml;base64,'+btoa(svg.replace(/#404040/gi,'#999999'));
+    icon.src='data:image/svg+xml;base64,'+btoa(svg);
   });
   const accessoryCardHeading=accessoryCard.querySelector('.accessory-card-heading');
   const accessoryHeaderIcon=accessoryTrigger.querySelector('.accessory-trigger-icon').cloneNode(true);
