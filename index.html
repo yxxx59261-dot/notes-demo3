@@ -626,6 +626,12 @@ body { background:rgb(242,241,246); overflow:hidden }
 .paper-editor > [data-paper-level="body"] { font:400 16px/24px "PingFang SC",sans-serif; }
 .paper-editor > [data-paper-meta="true"] { color:#8B8B8B; font-size:13px; line-height:21px; }
 .paper-editor > [data-paper-list="true"] { padding-left:18px; text-indent:-12px; }
+.paper-editor > [data-paper-checklist="true"] { position:relative; padding-left:30px; }
+.paper-checklist-toggle { position:absolute; left:0; top:2px; width:18px; height:18px; padding:0; border:1.5px solid #A8A8A8; border-radius:50%; background:#fff; color:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; vertical-align:middle; -webkit-tap-highlight-color:transparent; }
+.paper-checklist-toggle[aria-checked="true"] { border-color:#4169E1; background:#4169E1; }
+.paper-checklist-toggle[aria-checked="true"]::after { content:""; width:8px; height:4px; border-left:1.5px solid #fff; border-bottom:1.5px solid #fff; transform:rotate(-45deg) translateY(-1px); }
+.paper-editor > [data-paper-checklist-done="true"] { color:#999; text-decoration:line-through; }
+.paper-editor > [data-paper-checklist-done="true"] .paper-checklist-toggle { text-decoration:none; }
 .paper-editor > [data-paper-level="subtitle"] { margin-top:4px; margin-bottom:6px; }
 .paper-editor > [data-paper-level="section"] { margin-top:12px; margin-bottom:2px; }
 .paper-editor > [data-paper-block].is-entering { animation:paper-line-enter 360ms cubic-bezier(.22,.8,.25,1) both; }
@@ -2219,9 +2225,28 @@ body { background:rgb(242,241,246); overflow:hidden }
         clearPaperFontStyles(block);
       }
       block.dataset.paperHeading=String(block.dataset.paperLevel!=='body');
+      if(block.dataset.paperChecklist==='true')ensureChecklistToggle(block);
+      else block.querySelector(':scope > .paper-checklist-toggle')?.remove();
+      block.dataset.paperChecklistDone=String(block.dataset.paperChecklist==='true'&&block.dataset.paperChecklistDone==='true');
     });
     paperEditor.removeAttribute('data-heading-level');
     return blocks;
+  };
+  const ensureChecklistToggle=block=>{
+    let toggle=block.querySelector(':scope > .paper-checklist-toggle');
+    if(!toggle){
+      toggle=document.createElement('button');
+      toggle.type='button';
+      toggle.className='paper-checklist-toggle';
+      toggle.setAttribute('role','checkbox');
+      toggle.setAttribute('aria-label','标记待办完成');
+      toggle.contentEditable='false';
+      block.prepend(toggle);
+    }
+    const done=block.dataset.paperChecklistDone==='true';
+    toggle.setAttribute('aria-checked',String(done));
+    toggle.setAttribute('aria-label',done?'标记待办未完成':'标记待办完成');
+    block.dataset.paperChecklistDone=String(done);
   };
   const getPaperCaretBlock=()=>{
     normalizePaperBlocks();
@@ -2545,7 +2570,9 @@ body { background:rgb(242,241,246); overflow:hidden }
       if(block&&block!==paperEditor){
         const enabled=block.dataset.paperChecklist!=='true';
         block.dataset.paperChecklist=String(enabled);
-        if(enabled&&!block.textContent.trim())block.textContent='☐ ';
+        if(!enabled)block.dataset.paperChecklistDone='false';
+        else block.dataset.paperChecklistDone='false';
+        normalizePaperBlocks();
       }
     }else if(action==='undo'){
       document.execCommand('undo');
@@ -2562,6 +2589,21 @@ body { background:rgb(242,241,246); overflow:hidden }
     if(event.target.closest('button'))event.preventDefault();
   });
   editToolbarButtons.forEach(button=>button.addEventListener('click',()=>runEditToolbarAction(button.dataset.editAction)));
+  paperEditor.addEventListener('pointerdown',event=>{
+    const toggle=event.target.closest('.paper-checklist-toggle');
+    if(!toggle)return;
+    event.preventDefault();
+    const block=toggle.parentElement;
+    if(!block||!paperEditor.contains(block))return;
+    block.dataset.paperChecklistDone=String(block.dataset.paperChecklistDone!=='true');
+    ensureChecklistToggle(block);
+    const selection=window.getSelection();
+    const range=lastPaperRange&&paperEditor.contains(lastPaperRange.startContainer)?lastPaperRange.cloneRange():null;
+    paperEditor.focus({preventScroll:true});
+    if(range&&selection){selection.removeAllRanges();selection.addRange(range);}
+    syncEditToolbar();
+    saveDraftMetadata();
+  });
   headingOverlay.addEventListener('click',event=>{
     if(event.target===headingOverlay)setHeadingMenu(false);
   });
@@ -2644,6 +2686,16 @@ body { background:rgb(242,241,246); overflow:hidden }
     };
   };
   const readDraft=()=>String(paperEditor.innerText||paperEditor.textContent||'').replace(/\u00a0/g,' ').replace(/\r/g,'');
+  const readDraftMetadata=()=>JSON.stringify(getPaperBlocks().map(block=>({checklist:block.dataset.paperChecklist==='true',done:block.dataset.paperChecklistDone==='true'})));
+  const applyDraftMetadata=card=>{
+    let metadata=[];
+    try{metadata=JSON.parse(card?.dataset.noteChecklist||'[]');}catch{}
+    getPaperBlocks().forEach((block,index)=>{
+      const item=metadata[index];
+      if(item?.checklist){block.dataset.paperChecklist='true';block.dataset.paperChecklistDone=String(Boolean(item.done));ensureChecklistToggle(block);}
+    });
+  };
+  const saveDraftMetadata=()=>{if(currentDraftCard)currentDraftCard.dataset.noteChecklist=readDraftMetadata();};
   const setPaperEditorText=text=>{
     const lines=String(text??'').replace(/\r/g,'').split('\n');
     pendingPaperBreakLevel=null;
@@ -2821,6 +2873,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     const parts=draftParts(text);
     const partsDate=localDateParts(now);
     currentDraftCard.dataset.noteContent=text;
+    currentDraftCard.dataset.noteChecklist=readDraftMetadata();
     currentDraftCard.dataset.modified=partsDate.iso;
     const title=currentDraftCard.querySelector('.n1-text-3');
     const summary=currentDraftCard.querySelector('.n1-summary-2');
@@ -3467,6 +3520,7 @@ body { background:rgb(242,241,246); overflow:hidden }
       paperEditor.contentEditable=noteCard?'false':'true';
       paperEditor.setAttribute('aria-readonly',String(Boolean(noteCard)));
       currentDraftCard=noteCard||null;
+      if(noteCard)applyDraftMetadata(noteCard);
       currentDraftText=noteText;
       followNewNoteEnd=!noteCard;
       paperEditing=!noteCard;
