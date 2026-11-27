@@ -487,6 +487,7 @@ body { background:rgb(242,241,246); overflow:hidden }
 .accessory-detail-metric--remaining { right:34px }
 .accessory-detail-metric-label { display:block; color:#4f4f4f; font-size:12px; line-height:17px }
 .accessory-detail-metric-value { display:block; margin-top:16px; color:#4f4f4f; font-size:24px; line-height:34px; white-space:nowrap }
+.accessory-detail-metric--remaining .accessory-detail-metric-value:not(.is-reset) { color:#fb822f }
 .accessory-detail-divider { position:absolute; left:200px; top:calc(407px * var(--detail-vscale, 1)); width:1px; height:30px; background:#dfdfdf }
 .accessory-detail-copy { position:absolute; left:32px; width:311px; margin:0; color:#9c9c9c; font:13px/20px "PingFang SC",sans-serif; white-space:normal }
 .accessory-detail-copy--intro { top:calc(517px * var(--detail-vscale, 1)) }
@@ -3842,6 +3843,7 @@ body { background:rgb(242,241,246); overflow:hidden }
   accessoryResetAccept.addEventListener('click',()=>{
     accessoryUsedValue.textContent='0小时';
     accessoryRemainingValue.textContent='120小时';
+    accessoryRemainingValue.classList.add('is-reset');
     accessoryRowDetail.textContent='预估还可使用120小时';
     accessoryLinkedRow.classList.remove('is-empty');
     syncAccessoryUpdateHint();
@@ -3899,7 +3901,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     trigger.setAttribute('aria-expanded',String(next));
     menu.setAttribute('aria-hidden',String(!next));menu.inert=!next;
     if(next&&focus)mainItems[0].focus({preventScroll:true});
-    if(!next){setAccessory(false);resetTimer=setTimeout(()=>setSort(false),230);if(restore)trigger.focus({preventScroll:true})}
+    if(!next){setFilter(false);setAccessory(false);setSort(false);if(restore)trigger.focus({preventScroll:true})}
   }
   function setAccessoryDetail(next){
     if(next){setAccessory(false);setOpen(false)}
@@ -3908,7 +3910,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     accessoryDetailPage.setAttribute('aria-hidden',String(!next));
     accessoryDetailPage.inert=!next;
     if(next)accessoryDetailBack.focus({preventScroll:true});
-    else{setOpen(true);setAccessory(true,{focus:true})}
+    else trigger.focus({preventScroll:true});
   }
   trigger.addEventListener('click',()=>setOpen(!isOpen,{focus:!isOpen}));
   trigger.addEventListener('keydown',e=>{
@@ -3920,7 +3922,14 @@ body { background:rgb(242,241,246); overflow:hidden }
   accessoryCard.querySelector('.accessory-row--link').addEventListener('click',()=>setAccessoryDetail(true));
   accessoryDetailBack.addEventListener('click',()=>setAccessoryDetail(false));
   filterBack.addEventListener('click',()=>setFilter(false,{restore:true}));
-  accessoryOverlay.addEventListener('click',event=>{ if(event.target===accessoryOverlay)setAccessory(false,{restore:true}); });
+  filterBack.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setFilter(false,{restore:true})}});
+  accessoryCard.querySelector('.accessory-card-arrow').setAttribute('role','button');
+  accessoryCard.querySelector('.accessory-card-arrow').setAttribute('tabindex','0');
+  accessoryCard.querySelector('.accessory-card-arrow').setAttribute('aria-label','收起配件耗材');
+  const closeAccessoryPanel=()=>setAccessory(false,{restore:true});
+  accessoryCard.querySelector('.accessory-card-arrow').addEventListener('click',closeAccessoryPanel);
+  accessoryCard.querySelector('.accessory-card-arrow').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();closeAccessoryPanel()}});
+  accessoryOverlay.addEventListener('click',event=>{if(event.target===accessoryOverlay){setAccessory(false);setOpen(false,{restore:true})}});
   const chooseFilterItem=(item)=>{
     const label=item.querySelector('span,p')?.textContent.trim();
     if(filterCheckIcon && filterCheckIcon.parentElement!==item)item.append(filterCheckIcon);
@@ -3949,7 +3958,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     });
   });
   filterOverlay.addEventListener('click',e=>{
-    if(e.target===filterOverlay)setFilter(false,{restore:true});
+    if(e.target===filterOverlay){setFilter(false);setOpen(false,{restore:true})}
   });
   sortTrigger.addEventListener('keydown',e=>{
     if(e.key==='ArrowRight'){e.preventDefault();e.stopPropagation();setSort(true,{focus:true})}
