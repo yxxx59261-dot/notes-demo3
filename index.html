@@ -461,6 +461,20 @@ body { background:rgb(242,241,246); overflow:hidden }
 .accessory-card-heading .accessory-trigger-title { font-size:16px; line-height:22px }
 .accessory-card-heading .accessory-trigger-hint { color:#fb822f }
 .accessory-card-arrow { width:16px; height:16px; margin-left:auto; color:#404040; flex:none }
+.accessory-overlay { background:#f5f3f8; z-index:74; overflow-y:auto; transform:translateX(24px); opacity:0; transition:opacity 220ms ease,transform 320ms cubic-bezier(.22,.8,.25,1),visibility 0s 320ms }
+#note-1[data-accessory-open="true"] .accessory-overlay { transform:translateX(0); opacity:1; transition:opacity 220ms ease,transform 320ms cubic-bezier(.22,.8,.25,1),visibility 0s }
+.accessory-page-nav { height:57px; display:flex; align-items:flex-start; padding:11px 27px 0; box-sizing:border-box; gap:97px; color:#3d3d3d; background:#f5f3f8 }
+.accessory-page-back { position:relative; left:-13px; width:22px; height:22px; display:grid; place-items:center; border:0; padding:0; background:transparent; color:#404040; cursor:pointer }
+.accessory-page-back svg { width:16px; height:16px }
+.accessory-page-title { font:16px/22px "PingFang SC",sans-serif; white-space:nowrap }
+.accessory-card { position:relative; left:auto; top:auto; width:calc(100% - 32px); height:207px; margin:0 16px; padding:0; border-radius:10px; overflow:hidden; box-shadow:none; opacity:1; transform:none; transition:none; background:#fff }
+#note-1[data-accessory-open="true"] .accessory-card { transform:none; transition:none }
+.accessory-card-heading { display:none }
+.accessory-card .accessory-row { height:101px; padding:16px 18px; box-sizing:border-box; background:#fff; border-bottom:0 }
+.accessory-card .accessory-row + .accessory-row { position:relative; border-top:0 }
+.accessory-card .accessory-row + .accessory-row::before { content:""; position:absolute; top:0; left:30px; right:30px; height:.5px; background:#dfdfdf; pointer-events:none }
+.accessory-extra-card { width:calc(100% - 32px); height:107px; margin:24px 16px 0; overflow:hidden; border-radius:10px; background:#fff }
+.accessory-extra-card .accessory-row { height:107px; padding:22px 18px; border:0 }
 .accessory-row { height:101px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; gap:8px; border-bottom:1px solid #e9e9e9 }
 .accessory-row:last-child { border-bottom:0 }
 .accessory-row-heading { display:flex; align-items:center; gap:6px; height:23px }
@@ -3740,6 +3754,7 @@ body { background:rgb(242,241,246); overflow:hidden }
   accessoryOverlay.setAttribute('aria-hidden','true');
   accessoryOverlay.inert=true;
   accessoryOverlay.innerHTML=`
+    <nav class="accessory-page-nav" aria-label="配件耗材导航"><button type="button" class="accessory-page-back" aria-label="返回全部笔记"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m10 2-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="accessory-page-title">配件耗材</span></nav>
     <div class="accessory-card" tabindex="-1">
       <div class="accessory-card-heading">
         <svg class="accessory-card-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -3751,7 +3766,7 @@ body { background:rgb(242,241,246); overflow:hidden }
           <svg class="accessory-row-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="accessory-row-detail">预估还可使用100小时</div>
-        <div class="accessory-progress"><span class="accessory-progress-fill" style="width:82%"></span></div>
+        <div class="accessory-progress"><span class="accessory-progress-fill" style="width:85%"></span></div>
       </div>
       <button type="button" class="accessory-row accessory-row--link is-empty" aria-label="查看A3电磁笔笔芯详情">
         <div class="accessory-row-heading">
@@ -3762,6 +3777,9 @@ body { background:rgb(242,241,246); overflow:hidden }
         <div class="accessory-row-detail">预估还可使用0小时</div>
         <div class="accessory-progress"><span class="accessory-progress-fill" style="width:6px"></span></div>
       </button>
+
+    </div>
+    <div class="accessory-extra-card">
       <div class="accessory-row">
         <div class="accessory-row-heading">
           <img class="accessory-row-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBmaWxsPSJub25lIiB2ZXJzaW9uPSIxLjEiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIj48ZGVmcz48Y2xpcFBhdGggaWQ9Im1hc3Rlcl9zdmcwXzEwMDBfNjYwNDAiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcng9IjAiLz48L2NsaXBQYXRoPjwvZGVmcz48ZyBjbGlwLXBhdGg9InVybCgjbWFzdGVyX3N2ZzBfMTAwMF82NjA0MCkiPjxwYXRoIGQ9Ik0zLjMzMzMzMzI1Mzg2MDQ3MzYsMi41ODMzMzMzMTY5MzAyMzdMMy4zMzMzMzMyNTM4NjA0NzM2LDE3LjQxNjY2NzYyNjkzMDIzNEMzLjMzMzMzMzI1Mzg2MDQ3MzYsMTcuOTE2NjY2NjI2OTMwMjM3LDMuNzMyNTM0NzkzODYwNDczNiwxOC4zMzMzMzI2MjY5MzAyMzYsNC4yMTE1NzY3MDM4NjA0NzQsMTguMzMzMzMyNjI2OTMwMjM2TDQuNTgzMzMzMjUzODYwNDc0LDE4LjMzMzMzMjYyNjkzMDIzNkw0LjU4MzMzMzI1Mzg2MDQ3NCwxLjY2NjY2NjYyNjkzMDIzNjhMNC4yMTE1NzY3MDM4NjA0NzQsMS42NjY2NjY2MjY5MzAyMzY4QzMuNzMyNTM0NzkzODYwNDczNiwxLjY2NjY2NjYyNjkzMDIzNjgsMy4zMzMzMzMyNTM4NjA0NzM2LDIuMDgzMzMzMjI2OTMwMjM3LDMuMzMzMzMzMjUzODYwNDczNiwyLjU4MzMzMzMxNjkzMDIzN1oiIGZpbGw9IiM0MDQwNDAiIGZpbGwtb3BhY2l0eT0iMSIvPjxwYXRoIGQ9Ik02LjU4MzMzMzAxNTQ0MTg5NDUgMi40MTY2NjY2MjY5MzAyMzdDNi41ODMzMzMwMTU0NDE4OTQ1IDIuNDE2NjY2NjI2OTMwMjM3IDYuNTgzMzMzMDE1NDQxODk0NSAyLjQxNjY2NjYyNjkzMDIzNyA2LjU4MzMzMzAxNTQ0MTg5NDUgMi40MTY2NjY2MjY5MzAyMzdMMTQuNzQ5OTk5MDQ2MzI1Njg0IDIuNDE2NjY2NjI2OTMwMjM3QzE1Ljg1NDU2ODU0NTk4NzI3IDIuNDE2NjY2NjI2OTMwMjM3IDE2Ljc0OTk5OTA0NjMyNTY4NCAzLjMxMjA5NzEyNzI2ODY1MDQgMTYuNzQ5OTk5MDQ2MzI1Njg0IDQuNDE2NjY2NjI2OTMwMjM3TDE2Ljc0OTk5OTA0NjMyNTY4NCAxNS41ODMzMzI2NTc4MTQwMjZDMTYuNzQ5OTk5MDQ2MzI1Njg0IDE2LjY4NzkwMjE1NzQ3NTYxMiAxNS44NTQ1Njg1NDU5ODcyNyAxNy41ODMzMzI2NTc4MTQwMjYgMTQuNzQ5OTk5MDQ2MzI1Njg0IDE3LjU4MzMzMjY1NzgxNDAyNkw2LjU4MzMzMzAxNTQ0MTg5NDUgMTcuNTgzMzMyNjU3ODE0MDI2QzYuNTgzMzMzMDE1NDQxODk0NSAxNy41ODMzMzI2NTc4MTQwMjYgNi41ODMzMzMwMTU0NDE4OTQ1IDE3LjU4MzMzMjY1NzgxNDAyNiA2LjU4MzMzMzAxNTQ0MTg5NDUgMTcuNTgzMzMyNjU3ODE0MDI2WiIgZmlsbC1vcGFjaXR5PSIwIiBzdHJva2Utb3BhY2l0eT0iMSIgc3Ryb2tlPSIjNDA0MDQwIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvZz48L3N2Zz4=" alt="" aria-hidden="true">
@@ -3769,7 +3787,7 @@ body { background:rgb(242,241,246); overflow:hidden }
           <svg class="accessory-row-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="accessory-row-detail">预估还可使用2000小时</div>
-        <div class="accessory-progress"><span class="accessory-progress-fill" style="width:98%"></span></div>
+        <div class="accessory-progress"><span class="accessory-progress-fill" style="width:96%"></span></div>
       </div>
     </div>`;
   app.append(accessoryOverlay);
@@ -3867,7 +3885,7 @@ body { background:rgb(242,241,246); overflow:hidden }
     accessoryOverlay.setAttribute('aria-hidden',String(!next));
     accessoryOverlay.inert=!next;
     menu.inert=!isOpen||next;
-    if(focus&&next)accessoryCard.focus({preventScroll:true});
+    if(focus&&next)accessoryOverlay.querySelector('.accessory-page-back').focus({preventScroll:true});
     if(!next&&restore)accessoryTrigger.focus({preventScroll:true});
   }
   function setFilter(next,{focus=false,restore=false}={}){
@@ -3904,13 +3922,12 @@ body { background:rgb(242,241,246); overflow:hidden }
     if(!next){setFilter(false);setAccessory(false);setSort(false);if(restore)trigger.focus({preventScroll:true})}
   }
   function setAccessoryDetail(next){
-    if(next){setAccessory(false);setOpen(false)}
     isAccessoryDetailOpen=next;
     app.dataset.accessoryDetailOpen=String(next);
     accessoryDetailPage.setAttribute('aria-hidden',String(!next));
     accessoryDetailPage.inert=!next;
     if(next)accessoryDetailBack.focus({preventScroll:true});
-    else trigger.focus({preventScroll:true});
+    else accessoryCard.querySelector('.accessory-row--link').focus({preventScroll:true});
   }
   trigger.addEventListener('click',()=>setOpen(!isOpen,{focus:!isOpen}));
   trigger.addEventListener('keydown',e=>{
@@ -3918,7 +3935,8 @@ body { background:rgb(242,241,246); overflow:hidden }
   });
   sortTrigger.addEventListener('click',()=>setSort(!isSortOpen));
   typeTrigger.addEventListener('click',()=>setFilter(true,{focus:true}));
-  accessoryTrigger.addEventListener('click',()=>setAccessory(!isAccessoryOpen,{focus:!isAccessoryOpen}));
+  accessoryTrigger.addEventListener('click',()=>{setOpen(false);setAccessory(true,{focus:true})});
+  accessoryOverlay.querySelector('.accessory-page-back').addEventListener('click',()=>{setAccessory(false);trigger.focus({preventScroll:true})});
   accessoryCard.querySelector('.accessory-row--link').addEventListener('click',()=>setAccessoryDetail(true));
   accessoryDetailBack.addEventListener('click',()=>setAccessoryDetail(false));
   filterBack.addEventListener('click',()=>setFilter(false,{restore:true}));
